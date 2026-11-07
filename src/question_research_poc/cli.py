@@ -419,9 +419,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     bounded_loop = sub.add_parser(
         "run-bounded-deep-loop",
-        help="Run or resume the offline, budget-bounded synthetic research-to-brief action",
+        help="Run or resume budget-bounded research from synthetic fixtures or saved public WCF captures",
     )
-    bounded_loop.add_argument("--fixture", required=True)
+    bounded_loop.add_argument("--fixture", "--input", dest="fixture", required=True)
     bounded_loop.add_argument("--output-root", required=True)
     bounded_loop.add_argument("--closure-run-id")
     bounded_loop.add_argument("--resume", action="store_true")
@@ -432,6 +432,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Fixture-only acceptance hook: exit after persisting the selected stage receipt but before checkpoint update",
     )
     bounded_loop.add_argument("--request-finalize", action="store_true")
+    bounded_loop.add_argument("--observation", help="Codex observation bound to the previous completed stage; never part of topic-only input")
+    bounded_loop.add_argument("--wcf-root", help="Registered WCF package root for direct public reads in topic mode")
+    bounded_loop.add_argument("--max-os-threads", type=int, default=1, help="Explicitly authorized OS thread ceiling; numerical/compute threads remain one")
 
     offline_brief = sub.add_parser(
         "run-offline-evidence-brief",
@@ -1072,6 +1075,9 @@ def _dispatch(args: argparse.Namespace) -> object:
             stop_after=args.stop_after,
             crash_after=args.synthetic_crash_after,
             request_finalize=args.request_finalize,
+            observation_path=args.observation,
+            wcf_root=args.wcf_root,
+            max_os_threads=args.max_os_threads,
         )
     if args.command == "run-offline-evidence-brief":
         return run_offline_evidence_brief(

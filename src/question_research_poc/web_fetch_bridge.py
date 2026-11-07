@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import os
 import subprocess
 from hashlib import sha1
@@ -442,18 +443,38 @@ def _tokenize_claim(text: str) -> list[str]:
 
 
 def _split_chunks(text: str) -> list[str]:
-    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
-    raw_chunks = []
-    for paragraph in normalized.split("\n"):
-        paragraph = paragraph.strip()
-        if not paragraph:
+    return [text[row['start']:row['end']] for row in _split_chunk_spans(text)]
+
+
+
+def _split_chunk_spans(text: str, *, limit: int | None = None):
+    """The existing 280/240 splitter, retaining original Unicode offsets.
+
+    CRLF/CR delimit paragraphs without rewriting the body. Repeated paragraphs
+    are separate occurrences; no substring search is used to recover positions.
+    """
+    count = 0
+    for match in re.finditer(r'[^\r\n]+', text):
+        raw = match.group()
+        paragraph_start = match.start() + len(raw) - len(raw.lstrip())
+        paragraph_end = match.end() - (len(raw) - len(raw.rstrip()))
+        if paragraph_start >= paragraph_end:
             continue
-        if len(paragraph) <= 280:
-            raw_chunks.append(paragraph)
-        else:
-            for index in range(0, len(paragraph), 240):
-                raw_chunks.append(paragraph[index : index + 280].strip())
-    return [chunk for chunk in raw_chunks if chunk]
+        length = paragraph_end - paragraph_start
+        starts = (0,) if length <= 280 else range(0, length, 240)
+        for offset in starts:
+            start, end = paragraph_start + offset, min(paragraph_start + offset + 280, paragraph_end)
+            chunk = text[start:end]
+            start += len(chunk) - len(chunk.lstrip())
+            end -= len(chunk) - len(chunk.rstrip())
+            if start >= end:
+                continue
+            if limit is not None and count >= limit:
+                return
+            count += 1
+            yield {'start': start, 'end': end, 'paragraph_start': paragraph_start,
+                   'paragraph_end': paragraph_end}
+
 
 
 def _find_record(rows: list[dict[str, Any]], record_id: str) -> dict[str, Any] | None:

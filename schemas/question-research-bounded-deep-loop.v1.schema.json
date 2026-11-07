@@ -33,7 +33,7 @@
     "execution_status": {"const": "complete"},
     "research_status": {"enum": ["candidate_for_human_review", "blocked_insufficient_evidence"]},
     "search_stop_reason": {
-      "enum": ["marginal_returns_reached", "source_integrity_blocked", "no_new_evidence", "budget_exhausted", "insufficient_evidence"]
+      "enum": ["marginal_returns_reached", "source_integrity_blocked", "no_new_evidence", "budget_exhausted", "insufficient_evidence", "access_blocked", "fact_conflict"]
     },
     "stage_receipts": {
       "type": "array",
@@ -75,7 +75,7 @@
       "required": ["synthetic_or_public_only", "network_called", "provider_called", "service_started", "external_write_performed", "publication_performed", "silent_fallback_used", "model_memory_used_as_evidence"],
       "properties": {
         "synthetic_or_public_only": {"const": true},
-        "network_called": {"const": false},
+        "network_called": {"type": "boolean"},
         "provider_called": {"const": false},
         "service_started": {"const": false},
         "external_write_performed": {"const": false},

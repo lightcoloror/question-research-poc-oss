@@ -1,0 +1,2 @@
+# Preserve exact source/resource bytes used by cross-owner hash bindings.
+* -text

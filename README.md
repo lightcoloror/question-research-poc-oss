@@ -37,3 +37,7 @@ and the content brief requires human review. Hash-bound synthetic fixture
 acceptance is not real research, current online status or publication approval.
 See `docs/offline-evidence-brief-consumer-guide.md` and
 `PROJECTION_PROVENANCE.json` for recovery semantics and source boundaries.
+
+## Saved capture increment 0.1.2
+
+See [saved capture interfaces](docs/saved-capture-interfaces.md). Saved excerpts and lexical passage scores remain candidate material, never verified facts or publication approval.

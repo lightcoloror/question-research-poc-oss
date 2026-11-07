@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "question-research-poc"
-version = "0.1.1"
+version = "0.1.2"
 description = "Question-led research orchestration POC with bridges to local tools"
 readme = "README.md"
 license = "Apache-2.0"
@@ -12,9 +12,15 @@ requires-python = ">=3.11"
 dependencies = ["jsonschema>=4.23,<5"]
 
 [project.optional-dependencies]
+topic = ["filelock>=3.12,<4", "jieba>=0.42.1,<0.43", "psutil>=5.9,<8", "ai-research-workflow @ git+https://github.com/lightcoloror/ai-research-workflow-oss.git@9f1b2c03f2ee71fcb1bc7cbd4fe70e72db252161"]
 mcp = ["mcp>=1.0.0"]
 test = [
   "pytest>=8.2,<10",
+  "filelock>=3.12,<4",
+  "jieba>=0.42.1,<0.43",
+  "psutil>=5.9,<8",
+  "ai-research-workflow @ git+https://github.com/lightcoloror/ai-research-workflow-oss.git@9f1b2c03f2ee71fcb1bc7cbd4fe70e72db252161",
+  "web-content-fetcher @ git+https://github.com/lightcoloror/web-content-fetcher-oss.git@c9432cd98bafa69523722e3ab8e081f373fcb7fb",
 ]
 
 [project.scripts]

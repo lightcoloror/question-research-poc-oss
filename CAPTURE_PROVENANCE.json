@@ -1,0 +1,132 @@
+{
+  "version": "0.1.2",
+  "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+  "sources": [
+    {
+      "project": "question-research-poc",
+      "path": "src/question_research_poc/bounded_deep_loop.py",
+      "sha256": "97dc7bb3dfec1b1bdfa0469e2a184001571406a0ef792b45a04dd0d859bb1f64",
+      "bytes": 47538,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": true,
+      "differs_from_baseline": true
+    },
+    {
+      "project": "question-research-poc",
+      "path": "src/question_research_poc/research_progress.py",
+      "sha256": "dbabd13f47cd1411090b9a905808f3e694e8fdae97bcdaa6c9b119673c0c93ae",
+      "bytes": 3594,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": true,
+      "differs_from_baseline": false
+    },
+    {
+      "project": "question-research-poc",
+      "path": "src/question_research_poc/topic_research.py",
+      "sha256": "0dc37463a44665bb59f16a6a077fc324ff92f2841b8661648942711540092c04",
+      "bytes": 29196,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": false,
+      "differs_from_baseline": true
+    },
+    {
+      "project": "question-research-poc",
+      "path": "src/question_research_poc/evidence_autoflow.py",
+      "sha256": "213b05e9887c807865c00f10698407f2c63ebbbd1eeb0c09b1f7dd0b1acb6880",
+      "bytes": 14836,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": false,
+      "differs_from_baseline": true
+    },
+    {
+      "project": "question-research-poc",
+      "path": "src/question_research_poc/passage_retrieval.py",
+      "sha256": "2aed15ff6f4fbf0716af9105a35f70630c7d13705d9bfe88f40ad44959e935f6",
+      "bytes": 10298,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": false,
+      "differs_from_baseline": true
+    },
+    {
+      "project": "question-research-poc",
+      "path": "tests/test_bounded_deep_loop.py",
+      "sha256": "36bf5725eb5d2e7ad1412f155f68d645ec1c74b70b4657a42b0740a5c9b3ffc6",
+      "bytes": 11050,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": true,
+      "differs_from_baseline": false
+    },
+    {
+      "project": "question-research-poc",
+      "path": "tests/test_bounded_topic_closeout.py",
+      "sha256": "e83588581216599b0cefa5ac478ea2d6649dd6b8d66acc9e9da8ab650f76973e",
+      "bytes": 14051,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": false,
+      "differs_from_baseline": true
+    },
+    {
+      "project": "question-research-poc",
+      "path": "tests/test_research_progress.py",
+      "sha256": "e832d8c43c515b605f9e706e75af9822cdd7a1e933234f6938d7fa57d84efdcf",
+      "bytes": 1996,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": true,
+      "differs_from_baseline": false
+    },
+    {
+      "project": "question-research-poc",
+      "path": "tests/test_passage_retrieval.py",
+      "sha256": "2b4eaf36757bafbeaf22c3e4fd64650869f8a502c3ce1e0c1a566f1de30ae4e6",
+      "bytes": 12100,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": false,
+      "differs_from_baseline": true
+    },
+    {
+      "project": "question-research-poc",
+      "path": "tests/test_evidence_autoflow.py",
+      "sha256": "9de66cbed4e495dfda3c9f53a81d197b79e4abb654992aafcdb44a46c1e4ba7d",
+      "bytes": 13245,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": false,
+      "differs_from_baseline": true
+    },
+    {
+      "project": "question-research-poc",
+      "path": "src/question_research_poc/cli.py",
+      "sha256": "fca6bbf27a70ff9aec49393f94dc0e05ac56176c157c18db04955dfabf507a9d",
+      "bytes": 72849,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": true,
+      "differs_from_baseline": true
+    },
+    {
+      "project": "question-research-poc",
+      "path": "schemas/question-research-bounded-deep-loop.v1.schema.json",
+      "sha256": "540e24d4a2d3ec29055edc64a85284203e283508ac5b91ebef3fbe12cf7f0526",
+      "bytes": 3591,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": true,
+      "differs_from_baseline": true
+    },
+    {
+      "project": "question-research-poc",
+      "path": "src/question_research_poc/web_fetch_bridge.py",
+      "sha256": "928f556e63352c38268e46b11ee1a4a04ed14b104c540c02a313cdbb44f742d2",
+      "bytes": 18002,
+      "baseline_commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+      "tracked_at_baseline": true,
+      "differs_from_baseline": true,
+      "selected_symbols": [
+        "_split_chunks",
+        "_split_chunk_spans"
+      ],
+      "other_working_changes_not_copied": true
+    }
+  ],
+  "source_kind": "working snapshots and selected symbols, not falsely attributed to baseline HEAD",
+  "first_party_license": "Apache-2.0",
+  "original_worktree_modified": false,
+  "live_acquisition_or_model_tested": false
+}

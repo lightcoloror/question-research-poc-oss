@@ -7,10 +7,12 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .storage import read_json, write_json
+from .research_progress import canonical_reference, normalize_topic, evidence_snapshot, progress_delta
 
 
 CONTRACT = "question-research-bounded-deep-loop.v1"
 FIXTURE_CONTRACT = "question-research-bounded-deep-loop-fixture.v1"
+PUBLIC_INPUT_CONTRACT = "question-research-public-archive-input.v1"
 RECEIPT_CONTRACT = "question-research-bounded-deep-loop-stage-receipt.v1"
 ARTICLE_BRIEF_CONTRACT = "question-research-article-brief-candidate.v1"
 CONTRACT_VERSION = "1.0.0"
@@ -46,8 +48,12 @@ def run_bounded_deep_loop(
     stop_after: str | None = None,
     crash_after: str | None = None,
     request_finalize: bool = False,
+    observation_path: str | Path | None = None,
+    wcf_root: str | Path | None = None,
+    max_os_threads: int = 1,
+    saved_capture_index: str | Path | None = None,
 ) -> dict[str, Any]:
-    """Run one deterministic, offline, evidence-bounded research action."""
+    """Run the receipt chain for offline archives or bounded topic observations."""
     if stop_after is not None and stop_after not in STAGES:
         raise BoundedDeepLoopError("invalid_stop_stage", f"stop_after must be one of: {', '.join(STAGES)}")
     if crash_after is not None and crash_after not in STAGES:
@@ -69,6 +75,10 @@ def run_bounded_deep_loop(
 
     state = _load_or_create_checkpoint(checkpoint_path, run_id, input_sha256, fixture)
     receipts, artifacts = _validate_and_recover_chain(run_dir, state, run_id, input_sha256)
+    topic_mode = fixture.get('schema') == 'question-research-topic-input.v1'
+    if topic_mode:
+        from .topic_research import validate_captures
+        validate_captures(run_dir, artifacts)
     state = _checkpoint(fixture, run_id, input_sha256, receipts, completed=len(receipts) == len(STAGES))
     write_json(checkpoint_path, state)
 
@@ -109,10 +119,22 @@ def run_bounded_deep_loop(
         "guarded_synthesis": _build_guarded_synthesis,
         "article_brief": _build_article_brief,
     }
+    if topic_mode:
+        from .topic_research import topic_builders
+        builders = topic_builders(run_dir, observation_path, wcf_root, max_os_threads=max_os_threads,
+                                  saved_capture_index=saved_capture_index)
     previous_receipt_sha256 = receipts[-1]["receipt_sha256"] if receipts else None
     for index in range(len(receipts), len(STAGES)):
         stage_id = STAGES[index]
-        artifact = builders[stage_id](fixture, artifacts)
+        try:
+            artifact = builders[stage_id](fixture, artifacts)
+        except BoundedDeepLoopError as exc:
+            if exc.code != 'awaiting_codex_observation':
+                raise
+            return {'ok': True, 'execution_status': exc.code, 'run_dir': str(run_dir),
+                    'closure_run_id': run_id, 'completed_stages': [row['stage_id'] for row in receipts],
+                    'resume_from': stage_id, 'observation_contract': json.loads(str(exc)),
+                    'finalization_authorized': False}
         artifact_rel = f"artifacts/{index + 1:02d}-{stage_id}.json"
         artifact_path = run_dir / artifact_rel
         write_json(artifact_path, artifact)
@@ -128,7 +150,7 @@ def run_bounded_deep_loop(
             "artifact": {"path": artifact_rel, "sha256": artifact_sha256},
             "execution_status": "complete",
             "research_state": _stage_research_state(stage_id, artifact),
-            "network_called": False,
+            "network_called": bool(artifact.get('network_called', False)),
             "provider_called": False,
             "external_write_performed": False,
             "recorded_at": fixture["observed_at"],
@@ -183,22 +205,83 @@ def _load_fixture(path: Path) -> dict[str, Any]:
         raise BoundedDeepLoopError("fixture_corrupt", f"fixture is not valid JSON: {path}") from exc
     if not isinstance(payload, dict):
         raise BoundedDeepLoopError("fixture_invalid", "fixture root must be an object")
-    if payload.get("schema") != FIXTURE_CONTRACT:
-        raise BoundedDeepLoopError("fixture_contract_mismatch", f"expected {FIXTURE_CONTRACT}")
+    if set(payload) <= {'question', 'audience', 'budgets'}:
+        from .topic_research import normalize_topic_input
+        return normalize_topic_input(payload, path)
+    if payload.get("schema") not in {FIXTURE_CONTRACT, PUBLIC_INPUT_CONTRACT}:
+        raise BoundedDeepLoopError("fixture_contract_mismatch", f"expected {FIXTURE_CONTRACT} or {PUBLIC_INPUT_CONTRACT}")
     required = {"fixture_id", "question", "observed_at", "audience", "budgets", "subquestions", "sources", "claims", "evidence"}
     missing = sorted(required - set(payload))
     if missing:
         raise BoundedDeepLoopError("fixture_invalid", f"missing fixture fields: {', '.join(missing)}")
     _validate_fixture_semantics(payload)
+    if payload['schema'] == PUBLIC_INPUT_CONTRACT:
+        _validate_public_archives(payload, path.parent)
     return payload
+
+
+def _validate_public_archives(payload: dict[str, Any], base: Path) -> None:
+    """Bind caller excerpts to saved WCF bytes, including partial-capture limits.
+
+    Hash/excerpt matching proves local traceability, not publisher authenticity or
+    human fact review. It is repeated before every resume, preventing archive drift.
+    """
+    by_id = {}
+    for source in payload['sources']:
+        relative = Path(str(source.get('archive_path') or ''))
+        archive = (base / relative).resolve()
+        if relative.is_absolute() or not relative.parts or '..' in relative.parts or not archive.is_relative_to(base.resolve()):
+            raise BoundedDeepLoopError('public_archive_path_invalid', 'archive must be within the input directory')
+        if not archive.is_file() or _sha256(archive.read_bytes()) != source.get('archive_sha256'):
+            raise BoundedDeepLoopError('public_archive_hash_mismatch', f"archive drift: {source['source_id']}")
+        try:
+            capture = json.loads(archive.read_text(encoding='utf-8-sig'))
+        except (ValueError, UnicodeError) as exc:
+            raise BoundedDeepLoopError('public_archive_invalid', 'archive is not WCF JSON') from exc
+        url = str(capture.get('final_url') or '')
+        completeness = capture.get('capture_completeness') or {}
+        excerpt_only = (source.get('capture_scope') == 'excerpt_only'
+                        and capture.get('status') == 'partial'
+                        # Saved-DOM completeness does not imply full-page or fact verification.
+                        and completeness.get('status') in {'partial', 'complete_against_saved_dom'}
+                        and (completeness.get('access') or {}).get('status', 'not_observed') == 'not_observed'
+                        and capture.get('http_status') == 200)
+        if (not url.startswith(('https://', 'http://')) or canonical_reference(url) != canonical_reference(source.get('canonical_ref'))
+                or not capture.get('transport_ok') or not (capture.get('content_ok') or excerpt_only)
+                or capture.get('status') not in {'success', 'ok', 'partial'}
+                or not capture.get('fetched_at') or not capture.get('extracted_text')):
+            raise BoundedDeepLoopError('public_archive_invalid', f"unusable capture: {source['source_id']}")
+        if source.get('content') != capture['extracted_text']:
+            raise BoundedDeepLoopError('public_archive_content_mismatch', f"content drift: {source['source_id']}")
+        if source.get('review_status') != 'candidate':
+            raise BoundedDeepLoopError('public_review_promotion_rejected', 'public capture must remain candidate')
+        source['capture_status'] = capture['status']
+        source['capture_content_ok'] = bool(capture.get('content_ok'))
+        source['capture_scope'] = 'excerpt_only' if not capture.get('content_ok') else 'captured_text'
+        source['capture_fetched_at'] = capture['fetched_at']
+        by_id[source['source_id']] = capture
+    for item in payload['evidence']:
+        if item.get('evidence_type') != 'source_claim' or item.get('status') != 'candidate' or item.get('review_status') != 'candidate':
+            raise BoundedDeepLoopError('public_review_promotion_rejected', 'public excerpts must remain candidate source claims')
+        quote = item.get('text')
+        if not isinstance(quote, str) or not quote.strip() or quote not in by_id[item['source_id']]['extracted_text']:
+            raise BoundedDeepLoopError('public_quote_missing', f"excerpt absent from capture: {item['evidence_id']}")
 
 
 def _validate_fixture_semantics(fixture: dict[str, Any]) -> None:
     budgets = fixture.get("budgets") or {}
     for field in ("max_subquestions", "max_depth", "max_sources", "max_tokens", "max_expansions_per_round"):
         value = budgets.get(field)
-        if not isinstance(value, int) or value < 1:
+        if type(value) is not int or value < 1:
             raise BoundedDeepLoopError("fixture_budget_invalid", f"{field} must be a positive integer")
+    max_rounds = budgets.get('max_rounds', 1)
+    rounds_completed = fixture.get('rounds_completed', 1)
+    if type(max_rounds) is not int or type(rounds_completed) is not int or not 1 <= rounds_completed <= max_rounds:
+        raise BoundedDeepLoopError('fixture_budget_invalid', 'completed rounds must fit the round budget')
+    for row in [*fixture.get('sources', []), *fixture.get('evidence', [])]:
+        discovered = row.get('discovered_round', 1)
+        if type(discovered) is not int or not 1 <= discovered <= rounds_completed or type(row.get('token_cost', 0)) is not int or row.get('token_cost', 0) < 0:
+            raise BoundedDeepLoopError('fixture_budget_invalid', 'invalid discovery round or token cost')
     minimum_gap = budgets.get("minimum_gap_score", 0.0)
     if not isinstance(minimum_gap, (int, float)) or not 0 <= minimum_gap <= 1:
         raise BoundedDeepLoopError("fixture_budget_invalid", "minimum_gap_score must be between 0 and 1")
@@ -335,6 +418,18 @@ def _build_intake(fixture: dict[str, Any], _: dict[str, dict[str, Any]]) -> dict
         else:
             eligible.append(item)
     eligible.sort(key=lambda item: (-float(item.get("gap_score", 0)), priority.get(str(item.get("priority", "P3")), 9), item["subquestion_id"]))
+    unique = []
+    topic_ids = {}
+    aliases = {}
+    for item in eligible:
+        key = normalize_topic(item.get('dedupe_key') or item.get('text')) or item['subquestion_id']
+        if key in topic_ids:
+            aliases[item['subquestion_id']] = topic_ids[key]
+            rejected.append({'subquestion_id': item['subquestion_id'], 'reason': 'duplicate_subquestion'})
+        else:
+            topic_ids[key] = item['subquestion_id']
+            unique.append(item)
+    eligible = unique
     limit = min(budgets["max_subquestions"], budgets["max_expansions_per_round"])
     selected = eligible[:limit]
     for item in eligible[limit:]:
@@ -346,6 +441,7 @@ def _build_intake(fixture: dict[str, Any], _: dict[str, dict[str, Any]]) -> dict
         "budgets": budgets,
         "round": 1,
         "selected_subquestions": selected,
+        "subquestion_aliases": aliases,
         "deferred_subquestions": sorted(rejected, key=lambda item: item["subquestion_id"]),
         "selection_policy": "highest_evidence_gap_then_priority_with_depth_and_count_caps",
         "open_ended_expansion": False,
@@ -355,6 +451,7 @@ def _build_intake(fixture: dict[str, Any], _: dict[str, dict[str, Any]]) -> dict
 def _build_source_admission(fixture: dict[str, Any], artifacts: dict[str, dict[str, Any]]) -> dict[str, Any]:
     intake = artifacts["intake"]
     selected_ids = {item["subquestion_id"] for item in intake["selected_subquestions"]}
+    selected_ids.update(alias for alias, canonical in intake.get('subquestion_aliases', {}).items() if canonical in selected_ids)
     claim_ids = {item["claim_id"] for item in fixture["claims"] if item["subquestion_id"] in selected_ids}
     relevant_source_ids = {item["source_id"] for item in fixture["evidence"] if item["claim_id"] in claim_ids}
     budgets = fixture["budgets"]
@@ -363,6 +460,9 @@ def _build_source_admission(fixture: dict[str, Any], artifacts: dict[str, dict[s
     excluded: list[dict[str, str]] = []
     duplicate_sources: list[dict[str, str]] = []
     seen: dict[str, str] = {}
+    seen_hashes: dict[str, str] = {}
+    seen_ref_hashes: dict[str, str] = {}
+    source_variants = []
     blockers: list[str] = []
     for source in fixture["sources"]:
         source_id = source["source_id"]
@@ -374,9 +474,18 @@ def _build_source_admission(fixture: dict[str, Any], artifacts: dict[str, dict[s
             excluded.append({"source_id": source_id, "reason": "source_hash_mismatch"})
             blockers.append(f"source_hash_mismatch:{source_id}")
             continue
-        dedupe_key = str(source.get("canonical_ref") or "").strip().casefold() or actual_hash
-        if dedupe_key in seen:
-            duplicate_sources.append({"source_id": source_id, "duplicate_of": seen[dedupe_key]})
+        dedupe_key = canonical_reference(source.get('canonical_ref')) or actual_hash
+        duplicate_of = seen_hashes.get(actual_hash)
+        if dedupe_key in seen and seen_ref_hashes[dedupe_key] != actual_hash:
+            source_variants.append({'source_id': source_id, 'same_reference_as': seen[dedupe_key],
+                                    'reason': 'same_reference_different_content', 'resolution_status': 'human_review_required'})
+            # Legacy synthetic fixtures identify archive variants by reference;
+            # retain that contract while exposing the variant, never remap quotes.
+            if fixture['schema'] == FIXTURE_CONTRACT:
+                duplicate_sources.append({'source_id': source_id, 'duplicate_of': seen[dedupe_key]})
+                continue
+        if duplicate_of:
+            duplicate_sources.append({"source_id": source_id, "duplicate_of": duplicate_of})
             continue
         if len(admitted) >= budgets["max_sources"]:
             excluded.append({"source_id": source_id, "reason": "source_budget"})
@@ -386,6 +495,8 @@ def _build_source_admission(fixture: dict[str, Any], artifacts: dict[str, dict[s
             excluded.append({"source_id": source_id, "reason": "token_budget"})
             continue
         seen[dedupe_key] = source_id
+        seen_ref_hashes[dedupe_key] = actual_hash
+        seen_hashes[actual_hash] = source_id
         used_tokens += token_cost
         admitted.append(
             {
@@ -398,6 +509,8 @@ def _build_source_admission(fixture: dict[str, Any], artifacts: dict[str, dict[s
                 "freshness": source["freshness"],
                 "content_sha256": actual_hash,
                 "token_cost": token_cost,
+                "discovered_round": source.get('discovered_round', 1),
+                **{key: source[key] for key in ('archive_path', 'archive_sha256', 'capture_status', 'capture_scope', 'capture_content_ok', 'capture_fetched_at', 'provenance_kind', 'synthetic') if key in source},
             }
         )
     return {
@@ -405,6 +518,9 @@ def _build_source_admission(fixture: dict[str, Any], artifacts: dict[str, dict[s
         "selected_claim_ids": sorted(claim_ids),
         "admitted_sources": admitted,
         "duplicate_sources": duplicate_sources,
+        "source_variants": source_variants,
+        "source_aliases": {item['source_id']: item['duplicate_of'] for item in duplicate_sources
+                           if not any(variant['source_id'] == item['source_id'] for variant in source_variants)},
         "excluded_sources": excluded,
         "blockers": sorted(set(blockers)),
         "budget_usage": {
@@ -423,10 +539,23 @@ def _build_evidence_analysis(fixture: dict[str, Any], artifacts: dict[str, dict[
     selected_claim_ids = set(admission["selected_claim_ids"])
     evidence_by_claim: dict[str, list[dict[str, Any]]] = {}
     records: list[dict[str, Any]] = []
+    public = fixture['schema'] == PUBLIC_INPUT_CONTRACT
+    mechanical = public and fixture.get('automation_context', {}).get('profile') in {'saved-excerpt-observations.v1', 'question-passage-observations.v2'}
+    located = fixture.get('automation_context', {}).get('profile') == 'question-passage-observations.v2'
+    claim_by_id = {row['claim_id']: row for row in fixture['claims']}
+    source_by_id = {row['source_id']: row for row in fixture['sources']}
+    seen_evidence = {}
+    duplicate_evidence = []
     for item in fixture["evidence"]:
-        if item["claim_id"] not in selected_claim_ids or item["source_id"] not in admitted:
+        source_id = admission.get('source_aliases', {}).get(item['source_id'], item['source_id'])
+        if item["claim_id"] not in selected_claim_ids or source_id not in admitted:
             continue
-        source = admitted[item["source_id"]]
+        source = admitted[source_id]
+        identity = (item['claim_id'], source_id, item['relation'], ' '.join(item['text'].split()), item['evidence_type'])
+        if identity in seen_evidence:
+            duplicate_evidence.append({'evidence_id': item['evidence_id'], 'duplicate_of': seen_evidence[identity]})
+            continue
+        seen_evidence[identity] = item['evidence_id']
         usable = (
             item.get("status") == "verified"
             and item.get("review_status") == "reviewed"
@@ -435,16 +564,27 @@ def _build_evidence_analysis(fixture: dict[str, Any], artifacts: dict[str, dict[
             and source["freshness"] in {"current", "not_applicable"}
             and item.get("evidence_type") == "source_fact"
         )
+        claim = claim_by_id[item['claim_id']]
+        excerpt_matched = (mechanical and item.get('evidence_type') == 'source_claim'
+            and item.get('relation') == 'supports' and bool(item['text'].strip())
+            and claim.get('claim_origin') == 'deterministic_source_excerpt'
+            and claim['text'] == 'Unverified exact excerpt (semantic analysis not run): ' + item['text']
+            and item['text'] in source_by_id[item['source_id']]['content'])
         row = {
             "evidence_id": item["evidence_id"],
             "claim_id": item["claim_id"],
-            "source_id": item["source_id"],
+            "source_id": source_id,
+            "original_source_id": item['source_id'],
             "evidence_type": item["evidence_type"],
             "relation": item["relation"],
             "status": item["status"],
             "review_status": item["review_status"],
             "text": item["text"],
             "usable_as_source_fact": usable,
+            "usable_as_cited_source": public and source['freshness'] in {'current', 'not_applicable'} and source['quality'] == 'good',
+            "usable_as_unverified_excerpt": excerpt_matched,
+            **({'passage': item.get('passage'), 'semantic_support': 'not_assessed'} if located else {}),
+            "discovered_round": max(item.get('discovered_round', 1), source.get('discovered_round', 1)),
         }
         records.append(row)
         evidence_by_claim.setdefault(item["claim_id"], []).append(row)
@@ -456,8 +596,8 @@ def _build_evidence_analysis(fixture: dict[str, Any], artifacts: dict[str, dict[
         if claim_id not in selected_claim_ids:
             continue
         linked = evidence_by_claim.get(claim_id, [])
-        supports = [item for item in linked if item["relation"] == "supports" and item["usable_as_source_fact"]]
-        contradicts = [item for item in linked if item["relation"] == "contradicts" and item["usable_as_source_fact"]]
+        supports = [item for item in linked if item["relation"] == "supports" and (item["usable_as_source_fact"] or item['usable_as_cited_source'] or item['usable_as_unverified_excerpt'])]
+        contradicts = [item for item in linked if item["relation"] == "contradicts" and (item["usable_as_source_fact"] or item['usable_as_cited_source'])]
         if contradicts:
             status = "contradicted"
             contradictions.append(
@@ -469,7 +609,7 @@ def _build_evidence_analysis(fixture: dict[str, Any], artifacts: dict[str, dict[
                 }
             )
         elif supports:
-            status = "supported"
+            status = 'retrieval_candidate' if located else 'supported'
         else:
             status = "unknown"
             reason = "no_admitted_evidence" if not linked else "no_reviewed_source_fact_support"
@@ -477,7 +617,7 @@ def _build_evidence_analysis(fixture: dict[str, Any], artifacts: dict[str, dict[
         claims.append(
             {
                 "claim_id": claim_id,
-                "subquestion_id": claim["subquestion_id"],
+                "subquestion_id": artifacts['intake'].get('subquestion_aliases', {}).get(claim['subquestion_id'], claim['subquestion_id']),
                 "text": claim["text"],
                 "claim_origin": claim["claim_origin"],
                 "evidence_status": status,
@@ -492,12 +632,33 @@ def _build_evidence_analysis(fixture: dict[str, Any], artifacts: dict[str, dict[
         stop_reason = "no_new_evidence"
     elif any(item["reason"] in {"source_budget", "token_budget"} for item in admission["excluded_sources"]):
         stop_reason = "budget_exhausted"
-    elif not any(item["evidence_status"] in {"supported", "contradicted"} for item in claims):
+    elif not any(item["evidence_status"] in {"supported", "contradicted", "retrieval_candidate"} for item in claims):
         stop_reason = "insufficient_evidence"
+    round_progress = []
+    previous = evidence_snapshot([], [], [])
+    for round_index in range(1, fixture.get('rounds_completed', 1) + 1):
+        round_sources = [item for item in admitted.values() if item.get('discovered_round', 1) <= round_index]
+        round_evidence = [item for item in records if item['discovered_round'] <= round_index
+                          and (item['usable_as_source_fact'] or item['usable_as_cited_source'] or item['usable_as_unverified_excerpt'])]
+        current = evidence_snapshot(round_sources, claims, round_evidence)
+        round_progress.append({'round': round_index, **progress_delta(previous, current)})
+        previous = current
+    if stop_reason == 'marginal_returns_reached':
+        if len(round_progress) > 1 and not round_progress[-1]['meaningful_gain']:
+            stop_reason = 'no_new_evidence'
+        elif fixture.get('rounds_completed', 1) >= fixture['budgets'].get('max_rounds', 1):
+            stop_reason = 'budget_exhausted'
+        else:
+            stop_reason = 'insufficient_evidence'
     return {
         "schema": "question-research-evidence-analysis.v1",
         "claims": claims,
         "evidence_records": records,
+        "duplicate_evidence": duplicate_evidence,
+        "round_progress": round_progress,
+        "stop_detail": {'rounds_completed': len(round_progress), 'round_limit': fixture['budgets'].get('max_rounds', 1),
+                        'pending_claim_ids': [item['claim_id'] for item in claims if item['evidence_status'] != 'supported'],
+                        'scope': 'bounded_observed_rounds_not_global_search_exhaustion'},
         "contradictions": contradictions,
         "unknowns": unknowns,
         "classification_counts": {
@@ -514,7 +675,7 @@ def _build_evidence_analysis(fixture: dict[str, Any], artifacts: dict[str, dict[
 
 def _build_guarded_synthesis(fixture: dict[str, Any], artifacts: dict[str, dict[str, Any]]) -> dict[str, Any]:
     analysis = artifacts["evidence_analysis"]
-    supported = [item for item in analysis["claims"] if item["evidence_status"] == "supported"]
+    supported = [item for item in analysis["claims"] if item["evidence_status"] in {"supported", "retrieval_candidate"}]
     blockers = [f"unknown:{item['claim_id']}" for item in analysis["unknowns"]]
     blockers.extend(f"contradiction:{item['claim_id']}" for item in analysis["contradictions"])
     blockers.extend(artifacts["source_admission"]["blockers"])
@@ -523,7 +684,8 @@ def _build_guarded_synthesis(fixture: dict[str, Any], artifacts: dict[str, dict[
         {
             "claim_id": item["claim_id"],
             "text": item["text"],
-            "qualification": "supported_by_reviewed_synthetic_source_fact",
+            "qualification": ('supported_by_agent_checked_public_excerpt_pending_human_review'
+                              if fixture['schema'] == PUBLIC_INPUT_CONTRACT else 'supported_by_reviewed_synthetic_source_fact'),
             "evidence_ids": item["evidence_ids"],
             "source_ids": item["source_ids"],
         }
@@ -535,7 +697,10 @@ def _build_guarded_synthesis(fixture: dict[str, Any], artifacts: dict[str, dict[
         "status": status,
         "statements": statements,
         "blocking_gates": sorted(set(blockers)),
-        "warnings": ["Synthetic fixture evidence is not real-world evidence and cannot establish real usage or current truth."],
+        "warnings": (["Public excerpts were matched to saved WCF captures; claim interpretation still requires review.",
+                      "Partial captures support only the quoted text, not complete-page or media claims."]
+                     if fixture['schema'] == PUBLIC_INPUT_CONTRACT else
+                     ["Synthetic fixture evidence is not real-world evidence and cannot establish real usage or current truth."]),
         "stop_reason": analysis["stop_reason"],
         "human_review_required": True,
         "finalization_authorized": False,
@@ -553,7 +718,9 @@ def _build_article_brief(fixture: dict[str, Any], artifacts: dict[str, dict[str,
             "claim_id": statement["claim_id"],
             "evidence_ids": statement["evidence_ids"],
             "source_ids": statement["source_ids"],
-            "draft_instruction": "Present as evidence-bounded synthetic finding; preserve qualification.",
+            "draft_instruction": ('Present as a candidate interpretation of the cited public excerpt; preserve capture limits.'
+                                  if fixture['schema'] == PUBLIC_INPUT_CONTRACT else
+                                  'Present as evidence-bounded synthetic finding; preserve qualification.'),
         }
         for index, statement in enumerate(synthesis["statements"], start=1)
     ]
@@ -578,8 +745,43 @@ def _build_article_brief(fixture: dict[str, Any], artifacts: dict[str, dict[str,
             "publish_authorized": False,
             "external_write_authorized": False,
         },
-        "source_material": "synthetic_fixture_only",
+        "source_material": 'public_archives' if fixture['schema'] == PUBLIC_INPUT_CONTRACT else 'synthetic_fixture_only',
+        **({'topic_candidates': _topic_candidates(artifacts),
+            'sources': artifacts['source_admission']['admitted_sources'],
+            'claim_map': analysis['claims'], 'evidence_map': analysis['evidence_records'],
+            'round_progress': analysis['round_progress'], 'stop_detail': analysis['stop_detail'],
+            'consumer_contract': 'upstream_research_candidate_requires_Content_RCP_import_and_review'}
+           if fixture['schema'] == PUBLIC_INPUT_CONTRACT else {}),
     }
+
+
+def _topic_candidates(artifacts: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    candidates = []
+    analysis = artifacts['evidence_analysis']
+    for topic in artifacts['intake']['selected_subquestions']:
+        metadata = topic.get('candidate') or {}
+        claims = [item for item in analysis['claims'] if item['subquestion_id'] == topic['subquestion_id']]
+        supported = [item for item in claims if item['evidence_status'] == 'supported']
+        if not metadata or not supported:
+            continue
+        evidence_ids = sorted({eid for item in supported for eid in item['evidence_ids']})
+        cited = [item for item in analysis['evidence_records'] if item['evidence_id'] in evidence_ids
+                 and item['relation'] == 'supports' and item['usable_as_cited_source']]
+        candidates.append({
+            'candidate_id': topic['subquestion_id'], 'title': metadata.get('title') or topic['text'],
+            'problem': metadata.get('problem', ''), 'angle': metadata.get('angle', ''),
+            'selection_reason': metadata.get('selection_reason', ''),
+            'unanswered_questions': list(metadata.get('unanswered_questions') or []),
+            'claim_ids': [item['claim_id'] for item in supported],
+            'evidence_ids': [item['evidence_id'] for item in cited],
+            'source_ids': sorted({item['source_id'] for item in cited}),
+            'coverage': {'supported_claims': len(supported), 'total_claims': len(claims),
+                         'unknown_claim_ids': [item['claim_id'] for item in claims if item['evidence_status'] == 'unknown'],
+                         'contradicted_claim_ids': [item['claim_id'] for item in claims if item['evidence_status'] == 'contradicted'],
+                         'basis': 'cited_excerpt_support_not_human_verified_fact'},
+            'status': 'candidate_for_human_review', 'publish_authorized': False,
+        })
+    return candidates
 
 
 def _build_manifest(
@@ -615,7 +817,7 @@ def _build_manifest(
         },
         "boundaries": {
             "synthetic_or_public_only": True,
-            "network_called": False,
+            "network_called": any(artifact.get('network_called', False) for artifact in artifacts.values()),
             "provider_called": False,
             "service_started": False,
             "external_write_performed": False,
