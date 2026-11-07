@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "question-research-poc"
-version = "0.1.0"
+version = "0.1.1"
 description = "Question-led research orchestration POC with bridges to local tools"
 readme = "README.md"
 license = "Apache-2.0"
@@ -26,4 +26,4 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.setuptools.package-data]
-question_research_poc = ["schemas/*.json"]
+question_research_poc = ["schemas/*.json", "assets/*.json"]

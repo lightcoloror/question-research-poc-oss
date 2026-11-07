@@ -4,6 +4,17 @@ import json
 from pathlib import Path
 
 import pytest
+import socket
+
+
+@pytest.fixture(autouse=True)
+def offline_only(monkeypatch):
+    """Public synthetic tests never contact services or a local proxy."""
+    def blocked(*args, **kwargs):
+        raise OSError("Network is outside the offline public test scope")
+    monkeypatch.setattr(socket, "getaddrinfo", blocked)
+    monkeypatch.setattr(socket, "create_connection", blocked)
+    monkeypatch.setattr(socket.socket, "connect", blocked)
 
 
 @pytest.fixture

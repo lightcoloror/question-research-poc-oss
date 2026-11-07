@@ -12,6 +12,7 @@ from .agent_runbook import build_agent_runbook
 from .bridge_actions import enqueue_bridge_actions, plan_bridge_action, run_bridge_action
 from .bridge_runs import list_bridge_runs, read_bridge_run, retry_bridge_run_plan
 from .bounded_deep_loop import BoundedDeepLoopError, run_bounded_deep_loop
+from .offline_evidence_brief import run_offline_evidence_brief
 from .cockpit_readiness import audit_cockpit_readiness
 from .completeness_audit import audit_research_completeness
 from .demo_project import build_demo_project
@@ -431,6 +432,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="Fixture-only acceptance hook: exit after persisting the selected stage receipt but before checkpoint update",
     )
     bounded_loop.add_argument("--request-finalize", action="store_true")
+
+    offline_brief = sub.add_parser(
+        "run-offline-evidence-brief",
+        help="Run or resume the bounded offline question-to-evidence-and-brief pack",
+    )
+    offline_brief.add_argument("--fixture", required=True)
+    offline_brief.add_argument("--output-root", required=True)
+    offline_brief.add_argument("--closure-run-id")
+    offline_brief.add_argument("--resume", action="store_true")
+    offline_brief.add_argument(
+        "--stop-after",
+        choices=["intake", "source_admission", "evidence_analysis", "guarded_synthesis", "article_brief"],
+    )
+    offline_brief.add_argument(
+        "--synthetic-core-crash-after",
+        choices=["intake", "source_admission", "evidence_analysis", "guarded_synthesis", "article_brief"],
+        help="Fixture-only hook: stop after a core stage receipt is persisted",
+    )
+    offline_brief.add_argument(
+        "--synthetic-projection-crash-after",
+        choices=["deliverables", "receipt"],
+        help="Fixture-only hook: stop after projection files or their receipt are persisted",
+    )
 
     evidence_review = sub.add_parser("review-evidence", help="Review evidence")
     evidence_review.add_argument("--project", required=True)
@@ -1048,6 +1072,16 @@ def _dispatch(args: argparse.Namespace) -> object:
             stop_after=args.stop_after,
             crash_after=args.synthetic_crash_after,
             request_finalize=args.request_finalize,
+        )
+    if args.command == "run-offline-evidence-brief":
+        return run_offline_evidence_brief(
+            args.fixture,
+            args.output_root,
+            closure_run_id=args.closure_run_id,
+            resume=args.resume,
+            stop_after=args.stop_after,
+            core_crash_after=args.synthetic_core_crash_after,
+            projection_crash_after=args.synthetic_projection_crash_after,
         )
     if args.command == "review-evidence":
         return review_evidence(args.project, evidence_id=args.evidence_id, status=args.status, relation=args.relation, confidence=args.confidence, notes=args.notes, reviewer=args.reviewer)

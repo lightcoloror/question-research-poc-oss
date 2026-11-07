@@ -4,8 +4,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-RUNTIME_CONFIG_PATH = PROJECT_ROOT / "config" / "runtime.json"
+_SOURCE_ROOT = Path(__file__).resolve().parents[2]
+_SOURCE_CONFIG_PATH = _SOURCE_ROOT / "config" / "runtime.json"
+_BUNDLED_CONFIG_PATH = Path(__file__).resolve().parent / "assets" / "runtime.json"
+# A wheel must not rely on an untracked config beside its installation.
+RUNTIME_CONFIG_PATH = _SOURCE_CONFIG_PATH if _SOURCE_CONFIG_PATH.is_file() else _BUNDLED_CONFIG_PATH
+PROJECT_ROOT = _SOURCE_ROOT if _SOURCE_CONFIG_PATH.is_file() else Path.cwd()
 
 
 def load_runtime_config(path: str | Path | None = None) -> dict[str, Any]:

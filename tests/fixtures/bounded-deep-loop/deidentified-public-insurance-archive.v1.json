@@ -1,0 +1,154 @@
+{
+  "schema": "question-research-bounded-deep-loop-fixture.v1",
+  "contract_version": "1.0.0",
+  "fixture_id": "deidentified-public-insurance-archive-001",
+  "question": "Can premium alone establish that one fictional insurance policy is the best choice?",
+  "audience": "reviewers testing a deidentified public-insurance education workflow",
+  "observed_at": "2026-08-31T00:00:00+08:00",
+  "budgets": {
+    "max_subquestions": 3,
+    "max_depth": 2,
+    "max_sources": 3,
+    "max_tokens": 900,
+    "max_expansions_per_round": 3,
+    "minimum_gap_score": 0.2
+  },
+  "subquestions": [
+    {
+      "subquestion_id": "sq-contract-terms",
+      "text": "Which contract dimensions must be checked before comparing policies?",
+      "depth": 1,
+      "priority": "P0",
+      "gap_score": 0.95,
+      "token_cost": 60
+    },
+    {
+      "subquestion_id": "sq-premium-equivalence",
+      "text": "Can premium alone establish equivalent coverage?",
+      "depth": 1,
+      "priority": "P0",
+      "gap_score": 0.9,
+      "token_cost": 60
+    },
+    {
+      "subquestion_id": "sq-promotional-claim",
+      "text": "Does the promotional claim survive the checklist evidence?",
+      "depth": 2,
+      "priority": "P1",
+      "gap_score": 0.8,
+      "token_cost": 60
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "src-insurance-education",
+      "title": "Deidentified public insurance education fixture",
+      "canonical_ref": "archive://wcf/deidentified-insurance/education",
+      "archive_path": "archives/deidentified-insurance/education.md",
+      "archive_contract": "web-content-fetcher.evidence_archive.v1",
+      "source_type": "deidentified_public_insurance_fixture",
+      "publisher": "Synthetic Public Education Lab",
+      "quality": "good",
+      "review_status": "reviewed",
+      "freshness": "not_applicable",
+      "content": "Deidentified public insurance education fixture: the policy summary instructs readers to verify waiting periods, exclusions, coverage limits, and renewal terms in the actual contract before making a decision.",
+      "content_sha256": "0d942637797d2a4c9ae64f6e182d4b8b68c0188f6ef13be64a633a722150f115",
+      "archive_content_sha256": "0d942637797d2a4c9ae64f6e182d4b8b68c0188f6ef13be64a633a722150f115",
+      "token_cost": 130
+    },
+    {
+      "source_id": "src-insurance-checklist",
+      "title": "Deidentified public comparison checklist fixture",
+      "canonical_ref": "archive://wcf/deidentified-insurance/checklist",
+      "archive_path": "archives/deidentified-insurance/checklist.md",
+      "archive_contract": "web-content-fetcher.evidence_archive.v1",
+      "source_type": "deidentified_public_insurance_fixture",
+      "publisher": "Synthetic Public Education Lab",
+      "quality": "good",
+      "review_status": "reviewed",
+      "freshness": "not_applicable",
+      "content": "Deidentified public insurance checklist fixture: a premium comparison alone cannot establish whether two policies provide equivalent coverage.",
+      "content_sha256": "258340059ad55213c18ee214c74f5ed5574c329e05ebdf07172d2d713e2f53fb",
+      "archive_content_sha256": "258340059ad55213c18ee214c74f5ed5574c329e05ebdf07172d2d713e2f53fb",
+      "token_cost": 100
+    },
+    {
+      "source_id": "src-insurance-promotion",
+      "title": "Synthetic promotional claim fixture",
+      "canonical_ref": "archive://wcf/deidentified-insurance/promotion",
+      "archive_path": "archives/deidentified-insurance/promotion.md",
+      "archive_contract": "web-content-fetcher.evidence_archive.v1",
+      "source_type": "synthetic_promotional_claim",
+      "publisher": "Fictional Promotion Lab",
+      "quality": "mixed",
+      "review_status": "reviewed",
+      "freshness": "not_applicable",
+      "content": "Synthetic promotional claim fixture: the lowest premium always means the best coverage for every household.",
+      "content_sha256": "7817dd343ed508a6ac6fa290f5da1e49bc6e89455cf2bf9ed56feb93c589dbdc",
+      "archive_content_sha256": "7817dd343ed508a6ac6fa290f5da1e49bc6e89455cf2bf9ed56feb93c589dbdc",
+      "token_cost": 80
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "claim-contract-dimensions",
+      "subquestion_id": "sq-contract-terms",
+      "text": "A comparison should check waiting periods, exclusions, coverage limits, and renewal terms in the contract.",
+      "claim_origin": "source_claim"
+    },
+    {
+      "claim_id": "claim-premium-insufficient",
+      "subquestion_id": "sq-premium-equivalence",
+      "text": "Premium alone cannot establish equivalent coverage.",
+      "claim_origin": "source_claim"
+    },
+    {
+      "claim_id": "claim-lowest-premium-best",
+      "subquestion_id": "sq-promotional-claim",
+      "text": "The lowest premium always means the best coverage for every household.",
+      "claim_origin": "source_claim"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "ev-contract-dimensions",
+      "claim_id": "claim-contract-dimensions",
+      "source_id": "src-insurance-education",
+      "evidence_type": "source_fact",
+      "relation": "supports",
+      "status": "verified",
+      "review_status": "reviewed",
+      "text": "The deidentified education fixture explicitly lists waiting periods, exclusions, coverage limits, and renewal terms."
+    },
+    {
+      "evidence_id": "ev-premium-insufficient",
+      "claim_id": "claim-premium-insufficient",
+      "source_id": "src-insurance-checklist",
+      "evidence_type": "source_fact",
+      "relation": "supports",
+      "status": "verified",
+      "review_status": "reviewed",
+      "text": "The checklist states that premium alone cannot establish equivalent coverage."
+    },
+    {
+      "evidence_id": "ev-promotion-claim",
+      "claim_id": "claim-lowest-premium-best",
+      "source_id": "src-insurance-promotion",
+      "evidence_type": "source_claim",
+      "relation": "supports",
+      "status": "verified",
+      "review_status": "reviewed",
+      "text": "The synthetic promotional fixture asserts that the lowest premium is always best."
+    },
+    {
+      "evidence_id": "ev-checklist-contradiction",
+      "claim_id": "claim-lowest-premium-best",
+      "source_id": "src-insurance-checklist",
+      "evidence_type": "source_fact",
+      "relation": "contradicts",
+      "status": "verified",
+      "review_status": "reviewed",
+      "text": "The checklist says premium alone cannot establish equivalent coverage, contradicting the universal promotional claim."
+    }
+  ]
+}

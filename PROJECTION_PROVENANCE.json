@@ -1,0 +1,53 @@
+{
+  "edition": "0.1.1",
+  "date_utc": "2026-11-07T04:36:51.234632+00:00",
+  "base_public_commit": "29f751e610a7a29fcb65b84d0455ccc8eb99b328",
+  "source_repository": "lightcoloror/question-research-poc",
+  "source_HEAD": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+  "source_HEAD_does_not_contain_untracked_working_files": true,
+  "selected": [
+    {
+      "path": "src/question_research_poc/offline_evidence_brief.py",
+      "source_sha256": "4684c32cb3cf7097184c7eb7043885635fa3998347ec117bd457caffb7b8e895",
+      "source_kind": "untracked_working_snapshot",
+      "baseline_tree_entry": null
+    },
+    {
+      "path": "tests/test_offline_evidence_brief.py",
+      "source_sha256": "e53a82bfe41f4b1ee8f9de4ef4db66901fe7ec2e38f9dea5dc05c81e3b7ce939",
+      "source_kind": "untracked_working_snapshot",
+      "baseline_tree_entry": null
+    },
+    {
+      "path": "tests/fixtures/bounded-deep-loop/deidentified-public-insurance-archive.v1.json",
+      "source_sha256": "166dee02e461ee0fcccf005af3d02349bf8d85d3c6064fd916b11a580e724c5a",
+      "source_kind": "untracked_working_snapshot",
+      "baseline_tree_entry": null
+    },
+    {
+      "path": "docs/offline-evidence-brief-consumer-guide.md",
+      "source_sha256": "3daadbcd2b31f7003a47fb8ab9af79e00c591be31a9a1af73be7c397a7b328b4",
+      "source_kind": "untracked_working_snapshot",
+      "baseline_tree_entry": null
+    },
+    {
+      "path": "src/question_research_poc/cli.py",
+      "source_sha256": "7147378714b29877c4b80aea59fe2226a3d2aa3072f35efb2da775983bb61c39",
+      "source_kind": "selected parser/dispatcher blocks from working snapshot",
+      "selected_parser_sha256": "10bf20a4e1b7b068a651f07dd549471dc048f4e66c52b858239a189a0d3505f4",
+      "selected_dispatch_sha256": "d907040385c648b7d37ed2327512653594a069476566a5bb4f5e936164635a6f"
+    }
+  ],
+  "license": "Apache-2.0 retained",
+  "scope": "Existing offline projection plus exact CLI parser/dispatcher blocks; no topic/network/Provider changes",
+  "synthetic_fixture": "Entirely fictional insurance policy comparison; no client or actual policy records",
+  "source_worktree_modified": false,
+  "public_edition_changes": [
+    "pyproject version 0.1.1",
+    "README usage for offline candidate projection",
+    "consumer guide uses installed research-poc instead of omitted PowerShell wrapper",
+    "autouse socket guard prevents network and loopback service probes in tests",
+    "synchronize package __version__ with 0.1.1 metadata",
+    "bundle exact public runtime config in wheel; installed default project root relative to invocation directory"
+  ]
+}
