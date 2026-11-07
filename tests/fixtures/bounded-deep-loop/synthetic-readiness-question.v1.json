@@ -1,0 +1,187 @@
+{
+  "schema": "question-research-bounded-deep-loop-fixture.v1",
+  "fixture_id": "synthetic-readiness-question-001",
+  "question": "Should a fictional training team use one morning grip reading alone to decide the day's training load?",
+  "audience": "coaches evaluating a synthetic monitoring protocol",
+  "observed_at": "2026-08-27T00:00:00+08:00",
+  "budgets": {
+    "max_subquestions": 3,
+    "max_depth": 2,
+    "max_sources": 3,
+    "max_tokens": 900,
+    "max_expansions_per_round": 3,
+    "minimum_gap_score": 0.2
+  },
+  "subquestions": [
+    {
+      "subquestion_id": "sq-measurement-policy",
+      "text": "What does the synthetic protocol require before changing load?",
+      "depth": 1,
+      "priority": "P0",
+      "gap_score": 0.95,
+      "token_cost": 60
+    },
+    {
+      "subquestion_id": "sq-measurement-noise",
+      "text": "Does the synthetic pilot show day-to-day measurement variation?",
+      "depth": 1,
+      "priority": "P1",
+      "gap_score": 0.85,
+      "token_cost": 60
+    },
+    {
+      "subquestion_id": "sq-single-reading",
+      "text": "Is a single reading sufficient for every decision?",
+      "depth": 2,
+      "priority": "P1",
+      "gap_score": 0.75,
+      "token_cost": 60
+    },
+    {
+      "subquestion_id": "sq-wording-preference",
+      "text": "Which adjective sounds best in the eventual article?",
+      "depth": 3,
+      "priority": "P3",
+      "gap_score": 0.1,
+      "token_cost": 40
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "src-protocol",
+      "title": "Synthetic readiness protocol",
+      "canonical_ref": "fixture://synthetic-readiness/protocol",
+      "source_type": "synthetic_protocol",
+      "quality": "good",
+      "review_status": "reviewed",
+      "freshness": "not_applicable",
+      "content": "Synthetic protocol: use a trend of repeated measures and a second readiness signal; never decide from one observation alone.",
+      "content_sha256": "b05c17041e18f591983749c55fe30e528b7a4ba5082cff566b9b03d318765c6f",
+      "token_cost": 100
+    },
+    {
+      "source_id": "src-protocol-duplicate",
+      "title": "Synthetic readiness protocol duplicate archive",
+      "canonical_ref": "fixture://synthetic-readiness/protocol",
+      "source_type": "synthetic_archive",
+      "quality": "good",
+      "review_status": "reviewed",
+      "freshness": "not_applicable",
+      "content": "Synthetic duplicate archive of the protocol content.",
+      "content_sha256": "94d39b975048c4f4002eae72e4702e8ade4ff454edfb0ffcbe78ddc4ac763478",
+      "token_cost": 80
+    },
+    {
+      "source_id": "src-pilot",
+      "title": "Synthetic measurement pilot",
+      "canonical_ref": "fixture://synthetic-readiness/pilot",
+      "source_type": "synthetic_report",
+      "quality": "good",
+      "review_status": "reviewed",
+      "freshness": "not_applicable",
+      "content": "Synthetic pilot report: day-to-day grip readings varied under unchanged workload, so single readings were not decision-grade.",
+      "content_sha256": "710e3e85c612e3cf73c96a95695ddfc128163754e714d9c61fbf0e647cfcde67",
+      "token_cost": 120
+    },
+    {
+      "source_id": "src-opinion",
+      "title": "Synthetic opinion note",
+      "canonical_ref": "fixture://synthetic-readiness/opinion",
+      "source_type": "synthetic_opinion",
+      "quality": "mixed",
+      "review_status": "reviewed",
+      "freshness": "not_applicable",
+      "content": "Synthetic opinion note: one morning grip reading is sufficient for every training decision.",
+      "content_sha256": "1766388a5b8b5c89288a1195c695beb4e31e01b704f74a47602c174b48ebd5ef",
+      "token_cost": 80
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "claim-protocol",
+      "subquestion_id": "sq-measurement-policy",
+      "text": "The synthetic protocol requires a trend and a second signal before changing load.",
+      "claim_origin": "source_claim"
+    },
+    {
+      "claim_id": "claim-variation",
+      "subquestion_id": "sq-measurement-noise",
+      "text": "The synthetic pilot reports day-to-day variation under unchanged workload.",
+      "claim_origin": "source_claim"
+    },
+    {
+      "claim_id": "claim-cause",
+      "subquestion_id": "sq-measurement-noise",
+      "text": "The variation was caused by neural recruitment alone.",
+      "claim_origin": "agent_inference"
+    },
+    {
+      "claim_id": "claim-single-sufficient",
+      "subquestion_id": "sq-single-reading",
+      "text": "One morning grip reading is sufficient for every training decision.",
+      "claim_origin": "source_claim"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "ev-protocol-fact",
+      "claim_id": "claim-protocol",
+      "source_id": "src-protocol",
+      "evidence_type": "source_fact",
+      "relation": "supports",
+      "status": "verified",
+      "review_status": "reviewed",
+      "text": "The protocol text explicitly requires repeated measures and a second signal."
+    },
+    {
+      "evidence_id": "ev-protocol-duplicate",
+      "claim_id": "claim-protocol",
+      "source_id": "src-protocol-duplicate",
+      "evidence_type": "source_fact",
+      "relation": "supports",
+      "status": "verified",
+      "review_status": "reviewed",
+      "text": "Duplicate archive candidate; it must not count as an independent source."
+    },
+    {
+      "evidence_id": "ev-pilot-fact",
+      "claim_id": "claim-variation",
+      "source_id": "src-pilot",
+      "evidence_type": "source_fact",
+      "relation": "supports",
+      "status": "verified",
+      "review_status": "reviewed",
+      "text": "The synthetic pilot records variation under unchanged workload."
+    },
+    {
+      "evidence_id": "ev-cause-inference",
+      "claim_id": "claim-cause",
+      "source_id": "src-pilot",
+      "evidence_type": "agent_inference",
+      "relation": "supports",
+      "status": "candidate",
+      "review_status": "candidate",
+      "text": "The fixture does not identify a causal mechanism."
+    },
+    {
+      "evidence_id": "ev-opinion-claim",
+      "claim_id": "claim-single-sufficient",
+      "source_id": "src-opinion",
+      "evidence_type": "source_claim",
+      "relation": "supports",
+      "status": "verified",
+      "review_status": "reviewed",
+      "text": "The opinion note asserts sufficiency but does not establish it as a source fact."
+    },
+    {
+      "evidence_id": "ev-pilot-contradiction",
+      "claim_id": "claim-single-sufficient",
+      "source_id": "src-pilot",
+      "evidence_type": "source_fact",
+      "relation": "contradicts",
+      "status": "verified",
+      "review_status": "reviewed",
+      "text": "The pilot states that single readings were not decision-grade."
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{"kind":"source","source_id":"source_fixture_primary","quality":"good","note":"Synthetic primary-source fixture.","reviewer":"fixture-reviewer","reviewed_at":"2026-08-05T09:10:00+08:00"}
+{"kind":"source","source_id":"source_fixture_video","quality":"good","note":"Reviewed synthetic media fixture.","reviewer":"fixture-reviewer","reviewed_at":"2026-08-05T09:11:00+08:00"}
+{"kind":"evidence","evidence_id":"evidence_fixture_support","status":"verified","note":"Accepted synthetic support.","reviewer":"fixture-reviewer","reviewed_at":"2026-08-05T09:12:00+08:00"}
+{"kind":"evidence","evidence_id":"evidence_fixture_rejected_contradiction","status":"rejected","note":"Rejected overbroad contradiction.","reviewer":"fixture-reviewer","reviewed_at":"2026-08-05T09:13:00+08:00"}

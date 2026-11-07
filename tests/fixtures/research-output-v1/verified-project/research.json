@@ -1,0 +1,7 @@
+{
+  "id": "research_output_fixture_001",
+  "question": "统一研究输出能否在离线状态下保持证据门控和可追溯性？",
+  "created_at": "2026-08-05T09:00:00+08:00",
+  "status": "open",
+  "notes": "验证 research-output.v1 的稳定内容交接契约。"
+}

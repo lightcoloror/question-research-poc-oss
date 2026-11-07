@@ -1,0 +1,7 @@
+include LICENSE
+include SECURITY.md
+include THIRD_PARTY_NOTICES.md
+include .env.example
+recursive-include config *.json
+recursive-include schemas *.json
+recursive-include tests *.py *.json *.jsonl *.md *.html

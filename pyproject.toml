@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "question-research-poc"
+version = "0.1.0"
+description = "Question-led research orchestration POC with bridges to local tools"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+dependencies = ["jsonschema>=4.23,<5"]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0.0"]
+test = [
+  "pytest>=8.2,<10",
+]
+
+[project.scripts]
+research-poc = "question_research_poc.cli:main"
+research-poc-mcp = "question_research_poc.mcp_server:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+question_research_poc = ["schemas/*.json"]

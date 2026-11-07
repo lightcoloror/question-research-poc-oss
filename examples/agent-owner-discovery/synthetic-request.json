@@ -1,0 +1,7 @@
+{
+  "schema_version": "question-research-poc.synthetic-request.v1",
+  "question": "Does a synthetic candidate claim have enough reviewed evidence for a guarded final answer?",
+  "source_refs": ["synthetic-source-001"],
+  "execute": false,
+  "expected_boundary": "candidate_only_review_and_completeness_gates_required"
+}

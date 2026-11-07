@@ -1,0 +1,2 @@
+{"id":"source_review_fixture_primary","source_id":"source_fixture_primary","quality":"good","reason":"Synthetic primary-source fixture.","reviewer":"fixture-reviewer","created_at":"2026-08-05T09:10:00+08:00"}
+{"id":"source_review_fixture_video","source_id":"source_fixture_video","quality":"good","reason":"Reviewed synthetic media fixture.","reviewer":"fixture-reviewer","created_at":"2026-08-05T09:11:00+08:00"}

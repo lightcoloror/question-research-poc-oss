@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/schemas/question-research-bounded-deep-loop.v1.schema.json",
+  "title": "question-research-bounded-deep-loop.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "closure_run_id",
+    "fixture_id",
+    "input_sha256",
+    "question",
+    "execution_status",
+    "research_status",
+    "search_stop_reason",
+    "stage_receipts",
+    "guarded_synthesis",
+    "article_brief",
+    "resume_from",
+    "finalization_authorized",
+    "truth_dimensions",
+    "boundaries",
+    "created_at"
+  ],
+  "properties": {
+    "schema": {"const": "question-research-bounded-deep-loop.v1"},
+    "schema_version": {"const": "1.0.0"},
+    "closure_run_id": {"type": "string", "minLength": 6},
+    "fixture_id": {"type": "string", "minLength": 1},
+    "input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "question": {"type": "string", "minLength": 1},
+    "execution_status": {"const": "complete"},
+    "research_status": {"enum": ["candidate_for_human_review", "blocked_insufficient_evidence"]},
+    "search_stop_reason": {
+      "enum": ["marginal_returns_reached", "source_integrity_blocked", "no_new_evidence", "budget_exhausted", "insufficient_evidence"]
+    },
+    "stage_receipts": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stage_id", "stage_index", "path", "receipt_sha256", "artifact_path", "artifact_sha256"],
+        "properties": {
+          "stage_id": {"enum": ["intake", "source_admission", "evidence_analysis", "guarded_synthesis", "article_brief"]},
+          "stage_index": {"type": "integer", "minimum": 1, "maximum": 5},
+          "path": {"type": "string", "pattern": "^receipts/"},
+          "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "artifact_path": {"type": "string", "pattern": "^artifacts/"},
+          "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "guarded_synthesis": {"type": "object"},
+    "article_brief": {"type": "object"},
+    "resume_from": {"type": "null"},
+    "finalization_authorized": {"const": false},
+    "truth_dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_ready", "runtime_ready", "fresh_e2e_pass", "real_usage_proof", "current_online"],
+      "properties": {
+        "contract_ready": {"const": true},
+        "runtime_ready": {"const": true},
+        "fresh_e2e_pass": {"const": true},
+        "real_usage_proof": {"const": false},
+        "current_online": {"const": false}
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["synthetic_or_public_only", "network_called", "provider_called", "service_started", "external_write_performed", "publication_performed", "silent_fallback_used", "model_memory_used_as_evidence"],
+      "properties": {
+        "synthetic_or_public_only": {"const": true},
+        "network_called": {"const": false},
+        "provider_called": {"const": false},
+        "service_started": {"const": false},
+        "external_write_performed": {"const": false},
+        "publication_performed": {"const": false},
+        "silent_fallback_used": {"const": false},
+        "model_memory_used_as_evidence": {"const": false}
+      }
+    },
+    "created_at": {"type": "string", "minLength": 1}
+  }
+}

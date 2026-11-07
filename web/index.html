@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>问题主导研究总控台</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">Q</span>
+          <div>
+            <strong>Question Research</strong>
+            <span>local tool cockpit</span>
+          </div>
+        </div>
+
+        <section class="side-section">
+          <label class="label" for="projectRoot">Project root</label>
+          <input id="projectRoot" class="input" />
+          <label class="label" for="questionInput">Research question</label>
+          <textarea id="questionInput" class="textarea" rows="5"></textarea>
+          <div class="button-row">
+            <button id="loadProjectBtn" class="secondary-btn" type="button">加载</button>
+            <button id="initProjectBtn" class="primary-btn" type="button">创建</button>
+          </div>
+        </section>
+
+        <section class="side-section status-stack">
+          <div class="status-row"><span id="projectDot" class="dot muted"></span><span id="projectStatus">Project not loaded</span></div>
+          <div class="status-row"><span class="dot ok"></span><span>Evidence-first workflow</span></div>
+          <div class="status-row"><span class="dot warn"></span><span>External tools stay delegated</span></div>
+        </section>
+
+        <section class="side-section doctor-section">
+          <div class="side-title-row">
+            <label class="label">Tool health</label>
+            <button id="refreshToolsBtn" class="mini-btn" type="button">刷新</button>
+          </div>
+          <div id="toolHealthList" class="doctor-checks"></div>
+        </section>
+      </aside>
+
+      <main class="main">
+        <section class="hero-panel">
+          <div>
+            <p class="eyebrow">Research controller</p>
+            <h1 id="projectTitle">问题主导研究总控台</h1>
+            <p id="projectMeta" class="muted">组织问题、来源、主张、证据、审核和本地工具调用。</p>
+          </div>
+          <div class="metric-grid">
+            <div class="metric-card"><span>Sources</span><strong id="sourceCount">0</strong></div>
+            <div class="metric-card"><span>Claims</span><strong id="claimCount">0</strong></div>
+            <div class="metric-card"><span>Evidence</span><strong id="evidenceCount">0</strong></div>
+            <div class="metric-card"><span>Reviews</span><strong id="reviewCount">0</strong></div>
+          </div>
+        </section>
+
+        <section id="aiDeepResearchLaunchPanel" class="deep-launch-panel">
+          <div class="deep-launch-head">
+            <div>
+              <p class="eyebrow">Start here</p>
+              <h2>AI 深研收件箱</h2>
+            </div>
+            <span id="selectedProviderSummary" class="pill ok">manual first</span>
+          </div>
+          <div class="deep-launch-layout">
+            <div class="deep-question-area">
+              <label class="label" for="deepResearchQuestionInput">研究问题</label>
+              <textarea id="deepResearchQuestionInput" rows="5" placeholder="把你要交给多个 AI 深度研究的问题写在这里"></textarea>
+              <label class="label" for="deepResearchClarifications">澄清补充</label>
+              <textarea id="deepResearchClarifications" rows="4" placeholder="范围、输出格式、来源偏好、不要碰的边界"></textarea>
+              <label class="label" for="deepResearchSourcePolicy">来源策略</label>
+              <input id="deepResearchSourcePolicy" value="优先官方文档、开源项目源码、产品帮助中心和可复现实测；所有网页端深度研究报告只作为候选上下文。" />
+            </div>
+            <div class="deep-provider-area">
+              <div class="provider-toolbar">
+                <strong>可选自动化</strong>
+                <div class="button-row compact-buttons">
+                  <button id="selectCoreProvidersBtn" class="mini-btn" type="button">可用</button>
+                  <button id="selectAllProvidersBtn" class="mini-btn" type="button">全选</button>
+                  <button id="clearProvidersBtn" class="mini-btn" type="button">清空</button>
+                </div>
+              </div>
+              <div id="deepProviderGrid" class="deep-provider-grid">
+                <label class="provider-blocked"><input class="deep-provider-checkbox" type="checkbox" value="ChatGPT Deep Research" /><span><strong>ChatGPT</strong><small>加载异常，先诊断</small></span></label>
+                <label class="provider-blocked"><input class="deep-provider-checkbox" type="checkbox" value="Gemini Deep Research" /><span><strong>Gemini</strong><small>Google 登录拦截</small></span></label>
+                <label><input class="deep-provider-checkbox" type="checkbox" value="豆包深入研究" checked /><span><strong>豆包</strong><small>已持久登录，可自动跑</small></span></label>
+                <label><input class="deep-provider-checkbox" type="checkbox" value="通义千问研究" checked /><span><strong>千问</strong><small>已持久登录，可自动跑</small></span></label>
+                <label class="provider-pending"><input class="deep-provider-checkbox" type="checkbox" value="阶跃AI / StepFun 深度研究" /><span><strong>阶跃 AI / StepFun</strong><small>待验证: chat.stepfun.com</small></span></label>
+                <label class="provider-blocked"><input class="deep-provider-checkbox" type="checkbox" value="智谱清言研究报告" /><span><strong>智谱清言</strong><small>滑块验证阻塞</small></span></label>
+                <label class="provider-blocked"><input class="deep-provider-checkbox" type="checkbox" value="MiniMax Deep Research" /><span><strong>MiniMax</strong><small>加载异常，先诊断</small></span></label>
+              </div>
+              <div class="deep-action-stack">
+                <button id="deepInitProjectBtn" class="secondary-btn" type="button">创建 / 保存问题</button>
+                <button id="deepPreparePlanBtn" class="secondary-btn" type="button">生成统一提示词</button>
+                <button id="deepCopyPromptBtn" class="primary-btn" type="button">复制统一提示词</button>
+                <button id="deepRunAutomationBtn" class="secondary-btn" type="button">可选自动跑豆包/千问</button>
+                <button id="deepOpenLoginBtn" class="secondary-btn" type="button">登录/诊断窗口</button>
+                <button id="deepPreflightBtn" class="secondary-btn" type="button">自动化预检</button>
+                <button id="deepExportMarkdownBtn" class="secondary-btn" type="button">导出汇总 MD</button>
+              </div>
+            </div>
+          </div>
+          <div class="manual-link-panel">
+            <div class="provider-toolbar">
+              <strong>打开网页端</strong>
+              <span class="pill">copy prompt there</span>
+            </div>
+            <div class="manual-link-grid">
+              <a class="provider-link" href="https://chatgpt.com/" target="_blank" rel="noreferrer">ChatGPT</a>
+              <a class="provider-link" href="https://claude.ai/new" target="_blank" rel="noreferrer">Claude</a>
+              <a class="provider-link" href="https://gemini.google.com/app" target="_blank" rel="noreferrer">Gemini</a>
+              <a class="provider-link" href="https://chat.deepseek.com/" target="_blank" rel="noreferrer">DeepSeek</a>
+              <a class="provider-link" href="https://www.doubao.com/chat/" target="_blank" rel="noreferrer">豆包</a>
+              <a class="provider-link" href="https://www.tongyi.com/" target="_blank" rel="noreferrer">通义</a>
+              <a class="provider-link" href="https://www.qianwen.com/?ch=tongyi_redirect" target="_blank" rel="noreferrer">千问</a>
+              <a class="provider-link" href="https://kimi.moonshot.cn/" target="_blank" rel="noreferrer">Kimi</a>
+              <a class="provider-link" href="https://www.perplexity.ai/" target="_blank" rel="noreferrer">Perplexity</a>
+              <a class="provider-link" href="https://grok.com/" target="_blank" rel="noreferrer">Grok</a>
+              <a class="provider-link" href="https://yuanbao.tencent.com/chat/naQivTmsDa" target="_blank" rel="noreferrer">腾讯元宝</a>
+              <a class="provider-link" href="https://metaso.cn/" target="_blank" rel="noreferrer">秘塔</a>
+              <a class="provider-link" href="https://www.stepfun.com/chats/new" target="_blank" rel="noreferrer">阶跃 AI</a>
+              <a class="provider-link" href="https://chatglm.cn/main/alltoolsdetail?lang=zh" target="_blank" rel="noreferrer">智谱清言</a>
+              <a class="provider-link" href="https://manus.im/" target="_blank" rel="noreferrer">Manus</a>
+              <a class="provider-link" href="https://agent.minimaxi.com/" target="_blank" rel="noreferrer">MiniMax</a>
+            </div>
+          </div>
+          <div class="deep-manual-panel">
+            <div class="provider-toolbar">
+              <strong>AI 回答收件箱</strong>
+              <span id="providerPasteProgress" class="pill">0 / 15 已存档</span>
+            </div>
+<div id="providerPasteGrid" class="provider-paste-grid">
+              <article class="provider-paste-card" data-provider-card="ChatGPT">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="ChatGPT" data-paste-url="https://chatgpt.com/" aria-label="粘贴 ChatGPT 回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="chatgpt" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>CG</span></button><a href="https://chatgpt.com/" target="_blank" rel="noreferrer">ChatGPT</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="ChatGPT" rows="3" placeholder="复制 ChatGPT 的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="Claude">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="Claude" data-paste-url="https://claude.ai/new" aria-label="粘贴 Claude 回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="claude" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>CL</span></button><a href="https://claude.ai/new" target="_blank" rel="noreferrer">Claude</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="Claude" rows="3" placeholder="复制 Claude 的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="Gemini">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="Gemini" data-paste-url="https://gemini.google.com/app" aria-label="粘贴 Gemini 回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="gemini" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>GM</span></button><a href="https://gemini.google.com/app" target="_blank" rel="noreferrer">Gemini</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="Gemini" rows="3" placeholder="复制 Gemini 的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="DeepSeek">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="DeepSeek" data-paste-url="https://chat.deepseek.com/" aria-label="粘贴 DeepSeek 回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="deepseek" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>DS</span></button><a href="https://chat.deepseek.com/" target="_blank" rel="noreferrer">DeepSeek</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="DeepSeek" rows="3" placeholder="复制 DeepSeek 的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="豆包">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="豆包" data-paste-url="https://www.doubao.com/chat/" aria-label="粘贴豆包回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="doubao" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>DB</span></button><a href="https://www.doubao.com/chat/" target="_blank" rel="noreferrer">豆包</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="豆包" rows="3" placeholder="复制豆包的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="千问">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="千问" data-paste-url="https://www.qianwen.com/?ch=tongyi_redirect" aria-label="粘贴千问回答"><img class="provider-brand-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAADA0lEQVR42u3azU/TcBgH8C9u67quLYyW4RAK402IYCLZyEz0YIyGeMA7B5UDJ/xz4KCLcsOzaLjgFVjYholKMhB8KTplKWyMQrd2dR5QIoleF1Oe5/j0Sdp+8vRpf23rqtUqznKcwxkPAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiCAMxTuWu3o7tiM70A35atRJWpa9mS+YET2iyUeAESB1QMNvhTDuKYTSTUp8Iz2fHbcqMVx1dXiy9DdsRlfuWy39PY0Teh6ebQ7LAWVzkbJtGwwHhfCioSFhczuJzWfEwXv3MamFvd6XdlaINSkAw50Ux7oPz9xdGSNDVwOtYXbJfg5BkODrTg8MtHeIqJTkaW3maw0+yzN93TJWMvsTAPYdsQMiEWVaFEvjY7fH24Lt0sAANOykVj9fFITlDh4PC48uDfcVtRLo7GoEnXMEDRNe7KjLRCMXVFOcpZlw7JsBOo5AMChUUFh30Cg3gflQiBYLlcmHQOQLxiRW7f6pEOjcip/81ovRP/xVej3uXGxK4gP6h5GRvqlvbwRccxdYL9o8M2yCNHvhp9j0BpqQGuo4eTkAcB1DtjRDgAAzbKIYtHgHfUc4OeY43kw1IEv3wowrcpf6zweFwCgVn8t1KQDRIHVP6iaGGpSIPrduH29G4tpFeu/tncqMkJNHG7EwtAKJaxv5SAKrO6YDmgMcKlXC5ndP3ODfS3IaTpymo7E6iesvMkCAOQGFi9evtttDHApxwAwjGvqo5rPLabVf9Z8/VaA/QNYTKvIfi/mWK97yjEAiaSaEgXvXPzp8vZvBNHvxmBfy6mOSLxW8Si+tF0vsHOJlJpyzAwQeEbb2NTiPd0yHj9ZGp2fXwveuXNJsiwb+f0jmKaN1EpidztbyNWL7Nz7LS0u8IzmmLXAn4uhWESJlM3Kw728ESkelPhqtQpRYHWpkUv6WM/U8srnNO+0xRC9DyAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiCA/yF+AnPSG77CsbqOAAAAAElFTkSuQmCC" data-provider-icon="qianwen" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>QW</span></button><a href="https://www.qianwen.com/?ch=tongyi_redirect" target="_blank" rel="noreferrer">千问</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="千问" rows="3" placeholder="复制千问的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="Kimi">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="Kimi" data-paste-url="https://kimi.moonshot.cn/" aria-label="粘贴 Kimi 回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="kimi" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>KM</span></button><a href="https://kimi.moonshot.cn/" target="_blank" rel="noreferrer">Kimi</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="Kimi" rows="3" placeholder="复制 Kimi 的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="Perplexity">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="Perplexity" data-paste-url="https://www.perplexity.ai/" aria-label="粘贴 Perplexity 回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="perplexity" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>PX</span></button><a href="https://www.perplexity.ai/" target="_blank" rel="noreferrer">Perplexity</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="Perplexity" rows="3" placeholder="复制 Perplexity 的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="Grok">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="Grok" data-paste-url="https://grok.com/" aria-label="粘贴 Grok 回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="grok" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>GK</span></button><a href="https://grok.com/" target="_blank" rel="noreferrer">Grok</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="Grok" rows="3" placeholder="复制 Grok 的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="腾讯元宝">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="腾讯元宝" data-paste-url="https://yuanbao.tencent.com/chat/naQivTmsDa" aria-label="粘贴腾讯元宝回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="yuanbao" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>YB</span></button><a href="https://yuanbao.tencent.com/chat/naQivTmsDa" target="_blank" rel="noreferrer">腾讯元宝</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="腾讯元宝" rows="3" placeholder="复制腾讯元宝的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="秘塔">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="秘塔" data-paste-url="https://metaso.cn/" aria-label="粘贴秘塔回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="metaso" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>MT</span></button><a href="https://metaso.cn/" target="_blank" rel="noreferrer">秘塔</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="秘塔" rows="3" placeholder="复制秘塔的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="阶跃AI">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="阶跃AI" data-paste-url="https://www.stepfun.com/chats/new" aria-label="粘贴阶跃 AI 回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="stepfun" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>SF</span></button><a href="https://www.stepfun.com/chats/new" target="_blank" rel="noreferrer">阶跃AI</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="阶跃AI" rows="3" placeholder="复制阶跃 AI 的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="智谱清言">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="智谱清言" data-paste-url="https://chatglm.cn/main/alltoolsdetail?lang=zh" aria-label="粘贴智谱清言回答"><img class="provider-brand-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAIV0lEQVR42t1bXWgc1xX+5u7sjzerqK7UdjfgRal/lIcIrdSHgndRbKhRkbDlxg92tiayEiNcBG1jqJUa7EJdQtUH0xTkBPcncShK8uCmkVmDm0JtoQ2lUGuNTLAiBW3XuNoGubWq7ez/TB/ujKQdzZ2dmf1z9MEwq92Z0ZzvnHvOuefcy0mSBAPYB2BAPrcB+BIeTzwCEJOPDwHcLHuHJEl6xwlJkhalLy4WZRmYMnIMC2gD8AGAALYG4gD2y+cSEI2LBwHMbCHhFYXOADis/kFtAYdlzW9lnABwRYsAhaW6O7iVlCQf9HOzh0OzB/B7Sa0cZZcyHDYSsCiTUHNhp2NFRO8UMfuZiNkFESspdiTq2EXg9xIEO23oD9qqRUpMJmGNgBMA3qql0BM3CrgeLWA6VqzoWR27CE4dcSDcy1f6WkMA3lYIqIn2p2NFvPmHPCLThaqT6vcSjA5WREQcwNOcJEn7APyl2oKPvZOrWNtGEO7l8dqIE80ezsrt+zlJkn4J4AfVeJlEUsTIL7J1EVxtDdcuuqz4h9cJgM5qvMSbV/PoGU7XXXiF+IOnM0gkRbO3PsdJkvSfSkKfVa2HAjY8u5OgY6cNoQCRQx9X4jgTSQmzCyKuf1ww5Ec6dhFMXXabComcZHA2pIVItICRsaxuGFML3beXR/jbvOkxm0iKmLhRwLs3CrqaHh104NVBh+HnWiZg7EoOP7+SM3TtC708wr12hAK2qpj78fMZzC6wSbgz4TbsDywRYFT4UMCG8TPOmmR0x89nmMOiP8jj9xdctSHAiPB+L8H4GWdVNK6XXPUMp5nDIT75hKFhZooAI8KfOmLHq4OOkn++tAx8mgCSD4F/LgOpNJASgFWh9F5fK+DZBjzVCuzeAXjcwB6/fr5x8HRa87fXRpz43hF79QgwIrzyT5eWgakZ4PYcPdSCmkGTm5LxXBfQ1b6ZkIOntUNvKGDDtYvbqkNAJFrA8XMZ5u/NHg4TP9uGTxbJmtC1gq8V6N8L9Afp5zeu5nF2PKv5TvHJJyonIJEU0TOcZoY6O08wsM+F+BKpSNNW0B8EOr4uYuinguVoUJaAzrDAdDR2nmCHzwU7T9BIzC2mNL+fuuxGxy79dyPl0lu9pOOprzVeeACw2wkzUpQDr2f6ek7vqy1OuBzE1NjdswPwtlAv79HIWFMCjRLJh3LkuF978ng9r89isNnDY/uT9rLeu28v8I1nqPducpt/uVUBmL8P3LoNTMUoKVrI50Wmc7bkBBNJEZ1hwdK4724HTg7Qc7Vxew6IROmhIJsTEX8gWE6GeJb2WWjd7tAUvj8InDxETb1W6G6XCT4E/GaSEpEvsLVvxAI0CZi+o/1Ql5PgSQ+/aWyfe6k2GtfzJ+deokQ8f6bAnBorWahyj6EoMKEz3fzKl50lfx89ALzzk/oKryZCyGi/a08Xv0bAhd+ZCIPXGTMsO0/gdq1Pbk4OAK8cs+bcqgU9ZQXlidj8feo73vvIIAHTd7QrO9ub7SXCnzzU8PDP9FV+L8HeDirarRn63W8nteckJQToNSk8bluJs2s09LR/4JuONfNX5iWrQmn00CQg8S92ymvnCXytj4fw5SLV94+StbBZkhrPGLAALTid9LJahzkzwrO0/0IvD7+XYGmZhkp1HqFOpog6AdKCg+fW4nCjUS5FVwqi732knTmqrcJQMk8Ih+72xmtfqf+zMDroWJv+phhTc10LKBdzG4mVlITj59nND7+XlJTDWaW0pYcWCMjnRfhaGkvAyFhWtxR+7aJLFbWMPZeUpo/aVdxMTtzEXD01PzKWQSRaMGT6LFM3NBfwe7UnD9mciHv/kABwdR/z5ZogfUFesxPEqiWoLbmEtlAnu47/t7v5utb8Zheow9MT3u8luDTq1PxtnkHAnh06BDR7OGYz498rebx7Q6qL8LTTLOiW45SWuNaUNxJlD4Hd/jJOsC+oXSQSRQm/ej9reGxZ13oaP9Yoc2sJz6r4qhOgjfUEdTTb9IRwL7tz++DzAn54MVcTR3d2PIueYaFsm72s8B+ytd8fNDAbbPZwGH2R3V7+019zuvHYDKZjRZwdz6IzLOCNq/my14cCNkxd3qYrPEv7vlZtAph9AVbLaSNR4V4ep47YTXV/E0kRkWjR9Iqxcn1/PeEBWkEyRYCZZSehgA0dOwme3WnbFEoTSQkr/5Nw97MipmOiacsp12leFajw7/+Z/Yz+ICVAC7qdIcUpGV0BUm1odZpLJjb3gAtv6Sc9vlbg0o/Yqbyh3qDFBUiWEQrYMPqig6n1+QQ191sz+s9pctOapd48xlB3OJEUcfRsDvfihYYJviqsC26k+9zkBi6doa11PRheH7C0DHz3fAF3F3LMWrwVKMnXqec3ryFSSlq352g1x2gmWs7s1QQYXiaXEoBfTwKXPyjgv6k8hLS1NYGEcHA5CXb7eQwfpnnH0jIVMJVeX01iJfXubqcOz+D0/REnSZLpzRGRKDXFB59LEDJFpDNFZHIiRFFCUVzv1SldWzvPwc5zcDpscDpKy+vVQpMbeHkAOPYtU7fdtLxUdmkZiHxMQ1CjcfQArVda6FG8XvFiaaX4qFVwrCWU7vOxAxVVq/ZXdbm80rmt5Rqh7na6YKovWHFXKg55uTxQ5Q0TqwIwMwf8/R49V7LQwde63hXu6apqK65kwwRQ451i8/fpEFG8vVaJzddCBVTWB3pbatZ7jAN4WgmDypdtaNCmqTrjETZsmiIqVl7B1scQNmygVM9j3wbwHZmlraj5IQB/VGeCWhe3yaGxbYsIH5MVGy9bEVI5iSGtm75AiMsydLHk4Exsnz8Mur8ogMd7+3wcwC3Z1G+Wu+H/iu/MWMbByU8AAAAASUVORK5CYII=" data-provider-icon="zhipu" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>ZP</span></button><a href="https://chatglm.cn/main/alltoolsdetail?lang=zh" target="_blank" rel="noreferrer">智谱清言</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="智谱清言" rows="3" placeholder="复制智谱清言的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="Manus">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="Manus" data-paste-url="https://manus.im/" aria-label="粘贴 Manus 回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="manus" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>MS</span></button><a href="https://manus.im/" target="_blank" rel="noreferrer">Manus</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="Manus" rows="3" placeholder="复制 Manus 的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+              <article class="provider-paste-card" data-provider-card="MiniMax">
+                <div class="provider-paste-head"><button class="provider-icon-btn" type="button" data-paste-provider="MiniMax" data-paste-url="https://agent.minimaxi.com/" aria-label="粘贴 MiniMax 回答"><img class="provider-brand-icon" src="data:image/png;base64,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" data-provider-icon="minimax" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="provider-icon-fallback" hidden>MM</span></button><a href="https://agent.minimaxi.com/" target="_blank" rel="noreferrer">MiniMax</a><span data-provider-status>待粘贴</span></div>
+                <textarea data-provider-report="MiniMax" rows="3" placeholder="复制 MiniMax 的回答后，点击左侧图标自动粘贴并存档"></textarea>
+              </article>
+            </div>
+            <div class="provider-merge-row">
+              <button id="deepMergeWhenCompleteBtn" class="primary-btn" type="button" disabled>整合已存档回答成 MD</button>
+              <small>按本次需要选择 AI；至少存档一份回答后即可汇总。</small>
+            </div>
+            <div id="deepMergeResult" class="merge-result-panel">
+              <span class="pill">idle</span>
+              <strong>整合后会在这里显示 Markdown 文件路径。</strong>
+            </div>
+            <div class="manual-report-grid">
+              <input id="deepManualReportProvider" placeholder="报告来源，例如 ChatGPT / Gemini / MiniMax" />
+              <input id="deepManualReportUrl" placeholder="可选：报告链接" />
+            </div>
+            <textarea id="deepManualReportText" rows="5" placeholder="把任意网页端深度研究结果粘贴到这里"></textarea>
+            <button id="deepImportManualReportBtn" class="primary-btn" type="button">保存粘贴报告</button>
+          </div>
+          <div id="deepLaunchStatus" class="deep-status-row">
+            <span class="pill">ready</span>
+            <strong>主流程：生成提示词 -> 打开网页端粘贴 -> 把报告粘回收件箱 -> 导出汇总。</strong>
+          </div>
+          <div class="deep-persistence-note">
+            登录状态会保存在本地持久浏览器 profile：<code>.local/browser-profiles/external-researcher</code>
+          </div>
+        </section>
+
+        <section id="dashboardPanel" class="dashboard-panel">
+          <div class="dashboard-head">
+            <div>
+              <p class="eyebrow">Dashboard</p>
+              <h2>研究驾驶舱</h2>
+            </div>
+            <span id="dashboardStage" class="pill">未加载</span>
+          </div>
+          <div id="stageDetailSummary" class="stage-detail-summary"></div>
+          <div class="dashboard-grid">
+            <div class="dashboard-card"><span>主张覆盖</span><strong id="claimCoverage">0%</strong><small>有任意证据的主张比例</small></div>
+            <div class="dashboard-card"><span>已验证覆盖</span><strong id="verifiedCoverage">0%</strong><small>有 verified evidence 的主张比例</small></div>
+            <div class="dashboard-card"><span>Gate</span><strong id="gateCoverage">0 / 0</strong><small>通过 / 失败</small></div>
+            <div class="dashboard-card"><span>审核队列</span><strong id="dashboardReviewQueue">0</strong><small>待人工处理项</small></div>
+          </div>
+          <div class="dashboard-columns">
+            <section>
+              <h3>来源质量</h3>
+              <div id="sourceQualityRows" class="mini-stat-list"></div>
+            </section>
+            <section>
+              <h3>缺口清单</h3>
+              <div id="dashboardGapRows" class="mini-list"></div>
+            </section>
+            <section>
+              <h3>下一步建议</h3>
+              <div id="dashboardActionRows" class="mini-list"></div>
+            </section>
+          </div>
+          <section>
+            <h3>本地工具状态</h3>
+            <div id="localToolHealthRows" class="local-tool-health-list"></div>
+          </section>
+          <div class="overview-columns">
+            <section>
+              <h3>主张-证据关系</h3>
+              <div id="overviewClaimRows" class="overview-list"></div>
+            </section>
+            <section>
+              <h3>重要产物入口</h3>
+              <div id="overviewArtifactRows" class="overview-list"></div>
+            </section>
+          </div>
+          <section id="completenessAuditPanel">
+            <div class="side-title-row">
+              <h3>研究完整性检查</h3>
+              <button id="completenessAuditBtn" class="mini-btn" type="button">检查</button>
+            </div>
+            <div id="completenessAuditRows" class="overview-list"></div>
+          </section>
+        </section>
+
+        <section class="workflow-grid">
+          <article id="planPanel" class="panel wide">
+            <div class="panel-header">
+              <div><p class="eyebrow">Question plan</p><h2>问题拆解与搜索调度</h2></div>
+              <div class="button-row">
+                <button id="planBtn" class="secondary-btn" type="button">生成计划</button>
+                <button id="planAddClaimsBtn" class="primary-btn" type="button">生成并写入主张</button>
+              </div>
+            </div>
+            <div class="form-grid">
+              <input id="searchQuery" placeholder="默认使用研究问题，也可输入单独搜索题目" />
+              <select id="searchMode"><option>auto</option><option>web</option><option>academic</option><option>news</option></select>
+              <input id="searchMaxResults" type="number" min="1" max="30" value="8" />
+              <input id="aiResearchBaseUrl" placeholder="ai-research-workflow URL，可留空" />
+            </div>
+            <div class="button-row">
+              <button id="aiResearchStatusBtn" class="secondary-btn" type="button">搜索服务状态</button>
+              <button id="searchPlanBtn" class="secondary-btn" type="button">搜索计划</button>
+              <button id="searchPreviewBtn" class="secondary-btn" type="button">搜索不导入</button>
+              <button id="searchImportBtn" class="primary-btn" type="button">搜索并导入</button>
+              <button id="searchRunsBtn" class="secondary-btn" type="button">查看最近搜索 run</button>
+            </div>
+            <div class="command-row">
+              <input id="aiResearchResultPath" placeholder="本地 ai-research result JSON 路径" />
+              <button id="importAiResearchResultBtn" class="secondary-btn" type="button">导入本地 result JSON</button>
+            </div>
+            <div id="aiResearchBridgeSummary" class="bridge-summary">
+              <span class="pill">未检查</span>
+              <strong>ai-research-workflow</strong>
+              <small>先生成计划或检查状态。</small>
+            </div>
+            <div id="aiResearchResultRows" class="bridge-result-list"></div>
+            <div class="subpanel">
+              <div class="panel-header compact">
+                <div><p class="eyebrow">Optional bridge</p><h3>Vane / Perplexica 候选来源</h3></div>
+                <span class="pill">candidate only</span>
+              </div>
+              <div class="form-grid">
+                <input id="vaneBaseUrl" placeholder="Vane/Perplexica URL，默认 127.0.0.1:3000" />
+                <select id="vaneSources"><option>web</option><option>academic</option><option>discussions</option><option>web,academic</option><option>web,discussions</option></select>
+                <select id="vaneOptimization"><option>balanced</option><option>speed</option><option>quality</option></select>
+                <input id="vaneChatModelKey" placeholder="chat model key，可留空自动选" />
+                <input id="vaneEmbeddingModelKey" placeholder="embedding model key，可留空自动选" />
+              </div>
+              <div class="button-row">
+                <button id="vaneStatusBtn" class="secondary-btn" type="button">检查 Vane/Perplexica</button>
+                <button id="vanePlanBtn" class="secondary-btn" type="button">候选搜索计划</button>
+                <button id="vanePreviewBtn" class="secondary-btn" type="button">搜索不导入</button>
+                <button id="vaneImportBtn" class="primary-btn" type="button">搜索并导入候选来源</button>
+              </div>
+              <div id="vaneBridgeSummary" class="bridge-summary">
+                <span class="pill">未检查</span>
+                <strong>Vane / Perplexica</strong>
+                <small>message 只作为候选上下文，sources 只作为候选来源。</small>
+              </div>
+              <div id="vaneResultRows" class="bridge-result-list"></div>
+            </div>
+          </article>
+
+          <article id="externalResearcherPanel" class="panel wide">
+            <div class="panel-header">
+              <div><p class="eyebrow">External researchers</p><h2>网页端深度研究工作台</h2></div>
+              <span class="pill">candidate only</span>
+            </div>
+            <p class="boundary-note">先在这里澄清问题；之后由浏览器自动化打开各家网页端深度研究、选择研究入口、投递提示词、处理 10 秒追问窗口、收集报告并导入。登录、验证码、付费墙和网页改版失败仍会显性停下让人接管。</p>
+            <div class="form-grid">
+              <input id="externalProviders" value="豆包深入研究, 通义千问研究" />
+              <input id="externalSourcePolicy" placeholder="来源策略，例如优先官方/论文/权威报告，排除 SEO 页面" />
+              <input id="externalOutputLanguage" value="中文" />
+            </div>
+            <div class="form-grid">
+              <input id="externalProfileConfigPath" placeholder="可选：网页适配器配置 JSON 路径" />
+              <input id="externalFollowupWaitSeconds" type="number" min="1" value="10" />
+              <input id="externalMaxWaitSeconds" type="number" min="30" value="900" />
+            </div>
+            <textarea id="externalClarifications" rows="5" placeholder="先回答澄清问题：用途、范围、时间、地域、来源偏好、输出格式、谨慎边界。可留空。"></textarea>
+            <div class="button-row">
+              <button id="externalPlanBtn" class="secondary-btn" type="button">生成深研提示词</button>
+              <button id="externalAutomationPlanBtn" class="secondary-btn" type="button">生成自动化计划</button>
+              <button id="externalAutomationCheckBtn" class="secondary-btn" type="button">配置预检</button>
+              <button id="externalAutomationLiveCheckBtn" class="secondary-btn" type="button">网页预检不提交</button>
+              <button id="externalLoginPrepPlanBtn" class="secondary-btn" type="button">登录窗口计划</button>
+              <button id="externalLoginPrepLiveBtn" class="secondary-btn" type="button">打开登录窗口</button>
+              <button id="externalAutomationRunBtn" class="primary-btn" type="button">启动浏览器自动执行</button>
+              <button id="externalProfileTemplateBtn" class="secondary-btn" type="button">写适配器模板</button>
+              <button id="externalListReportsBtn" class="secondary-btn" type="button">刷新外部报告</button>
+              <button id="externalExportBtn" class="primary-btn" type="button">导出汇总 Markdown</button>
+            </div>
+            <div id="externalBridgeSummary" class="bridge-summary">
+              <span class="pill">未计划</span>
+              <strong>External web researchers</strong>
+              <small>生成自动化计划后，可由 Playwright 打开已登录浏览器 profile 执行。</small>
+            </div>
+            <textarea id="externalPromptOutput" rows="10" placeholder="生成后的深度研究提示词会显示在这里，方便复制。"></textarea>
+            <textarea id="externalAutomationOutput" rows="7" placeholder="自动化计划、运行路径、失败接管提示会显示在这里。"></textarea>
+
+            <div class="subpanel">
+              <div class="panel-header compact">
+                <div><p class="eyebrow">Follow-up</p><h3>追问人工介入 / 10 秒默认回答</h3></div>
+                <span id="externalFollowupCountdown" class="pill">idle</span>
+              </div>
+              <textarea id="externalFollowupQuestion" rows="3" placeholder="把网页端深度研究的追问粘贴到这里"></textarea>
+              <textarea id="externalManualAnswer" rows="3" placeholder="人工回答。留空并启动倒计时，则 10 秒后自动生成保守默认回答。"></textarea>
+              <div class="button-row">
+                <button id="externalStartCountdownBtn" class="secondary-btn" type="button">启动 10 秒倒计时</button>
+                <button id="externalManualAnswerBtn" class="primary-btn" type="button">提交人工回答</button>
+                <button id="externalAutoAnswerBtn" class="secondary-btn" type="button">立即默认回答</button>
+              </div>
+              <textarea id="externalFollowupAnswerOutput" rows="4" placeholder="追问回答会显示在这里。"></textarea>
+            </div>
+
+            <div class="subpanel">
+              <div class="panel-header compact">
+                <div><p class="eyebrow">Collect</p><h3>收集各家最终报告</h3></div>
+                <span class="pill">manual paste</span>
+              </div>
+              <div class="form-grid">
+                <input id="externalReportProvider" placeholder="报告来源，例如 ChatGPT Deep Research" />
+                <input id="externalReportUrl" placeholder="可选：报告 URL / 会话链接" />
+                <input id="externalReportNotes" placeholder="备注：账号、模型、异常、是否被追问" />
+              </div>
+              <textarea id="externalReportText" rows="8" placeholder="把网页端深度研究最终报告全文粘贴到这里"></textarea>
+              <div class="button-row">
+                <button id="externalImportReportBtn" class="primary-btn" type="button">保存这家报告</button>
+              </div>
+              <div id="externalReportRows" class="bridge-result-list"></div>
+            </div>
+          </article>
+
+          <article id="gatePanel" class="panel wide">
+            <div class="panel-header">
+              <div><p class="eyebrow">Workflow gates</p><h2>流程路由与硬闸门</h2></div>
+              <div class="button-row">
+                <button id="routeTaskBtn" class="secondary-btn" type="button">任务路由</button>
+                <button id="gateAuditBtn" class="secondary-btn" type="button">Gate 审计</button>
+                <button id="perspectiveReviewBtn" class="secondary-btn" type="button">多视角审查</button>
+                <button id="personaReviewBtn" class="secondary-btn" type="button">读者盲测</button>
+                <button id="workflowEngineBtn" class="primary-btn" type="button">全流程检查</button>
+              </div>
+            </div>
+            <div class="form-grid">
+              <input id="materialHint" placeholder="材料提示：URL、视频、PDF、本地资料路径，可留空" />
+              <select id="targetStage"><option>answer_draft</option><option>source_ingest</option><option>deep_research</option><option>final_answer</option></select>
+            </div>
+            <div class="gate-workbench">
+              <div class="gate-summary" id="gateSummary">
+                <span class="pill">未检查</span>
+                <strong>先运行任务路由或 Gate 审计</strong>
+                <small>Gate 工作台会显示当前卡点和下一步动作。</small>
+              </div>
+              <div class="gate-columns">
+                <section>
+                  <h3>Gate 状态</h3>
+                  <div id="gateRows" class="gate-list"></div>
+                </section>
+                <section>
+                  <h3>下一步任务</h3>
+                  <div id="nextStepRows" class="gate-list"></div>
+                </section>
+              </div>
+              <section>
+                <h3>Gate 详情</h3>
+                <div id="gateDetailRows" class="detail-list"></div>
+              </section>
+              <section>
+                <h3>流程产物</h3>
+                <div id="workflowArtifactRows" class="artifact-list"></div>
+              </section>
+            </div>
+          </article>
+
+          <article id="reviewQueuePanel" class="panel wide">
+            <div class="panel-header">
+              <div><p class="eyebrow">Human review</p><h2>审核队列</h2></div>
+            </div>
+            <div id="reviewQueueWorkbench" class="review-queue-workbench">
+              <div id="reviewQueueRows" class="review-queue-list"></div>
+            </div>
+          </article>
+
+          <article id="sourceInboxPanel" class="panel wide">
+            <div class="panel-header">
+              <div><p class="eyebrow">Inbox</p><h2>资料收件箱</h2></div>
+              <button id="refreshSourceInboxBtn" class="secondary-btn" type="button">刷新收件箱</button>
+            </div>
+            <div class="form-grid">
+              <select id="sourceInboxKind"><option>web_page</option><option>search_result</option><option>video_bundle</option><option>document</option></select>
+              <input id="sourceInboxTitle" placeholder="候选资料标题" />
+              <input id="sourceInboxLocation" placeholder="URL / bundle / 文件路径" />
+              <input id="sourceInboxTool" placeholder="来源工具，例如 ai-research-workflow" />
+              <select id="sourceInboxQualityHint"><option>unknown</option><option>good</option><option>mixed</option><option>poor</option></select>
+              <button id="addSourceInboxItemBtn" class="secondary-btn" type="button">加入收件箱</button>
+            </div>
+            <div id="sourceInboxRows" class="review-queue-list"></div>
+          </article>
+
+          <article id="sourcesPanel" class="panel wide">
+            <div class="panel-header">
+              <div><p class="eyebrow">Sources</p><h2>来源与质量</h2></div>
+              <button id="addSourceBtn" class="primary-btn" type="button">添加来源</button>
+            </div>
+            <div class="form-grid">
+              <input id="sourceTitle" placeholder="标题" />
+              <select id="sourceType"><option>web</option><option>note</option><option>paper</option><option>book</option><option>video</option></select>
+              <input id="sourceUrl" placeholder="URL" />
+              <input id="sourcePath" placeholder="本地路径" />
+              <select id="sourceQuality"><option>unknown</option><option>good</option><option>mixed</option><option>poor</option></select>
+              <input id="sourceNotes" placeholder="备注" />
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>质量</th><th>类型</th><th>标题</th><th>位置</th><th></th></tr></thead><tbody id="sourceRows"></tbody></table></div>
+            <div class="command-row">
+              <select id="fetchSourceSelect"></select>
+              <select id="fetchClaimSelect"></select>
+              <input id="fetchDirectUrl" placeholder="或直接输入 URL 抓取" />
+              <label class="inline-check"><input id="fetchUseBrowser" type="checkbox" /> browser</label>
+              <label class="inline-check"><input id="fetchIncludeRaw" type="checkbox" /> include raw</label>
+              <button id="fetchPlanBtn" class="secondary-btn" type="button">抓取计划</button>
+              <button id="fetchSourceBtn" class="secondary-btn" type="button">抓取正文</button>
+              <button id="fetchEvidenceBtn" class="primary-btn" type="button">抓取并生成候选证据</button>
+            </div>
+            <div id="webFetchBridgeSummary" class="bridge-summary">
+              <span class="pill">未计划</span>
+              <strong>web-content-fetcher</strong>
+              <small>选择来源后可生成抓取计划。</small>
+            </div>
+            <div id="webFetchResultRows" class="bridge-result-list"></div>
+          </article>
+
+          <article id="claimsPanel" class="panel">
+            <div class="panel-header"><div><p class="eyebrow">Claims</p><h2>主张 / 子问题</h2></div></div>
+            <textarea id="claimText" rows="4" placeholder="要验证的主张或拆出来的子问题"></textarea>
+            <input id="claimNotes" placeholder="备注" />
+            <button id="addClaimBtn" class="primary-btn" type="button">添加主张</button>
+            <div class="compact-list" id="claimList"></div>
+          </article>
+
+          <article id="evidencePanel" class="panel">
+            <div class="panel-header"><div><p class="eyebrow">Evidence</p><h2>证据卡</h2></div></div>
+            <select id="evidenceClaim"></select>
+            <select id="evidenceSource"></select>
+            <div class="form-grid two">
+              <select id="evidenceRelation"><option>supports</option><option>contradicts</option><option>context</option><option>unknown</option></select>
+              <select id="evidenceConfidence"><option>unknown</option><option>low</option><option>medium</option><option>high</option></select>
+            </div>
+            <textarea id="evidenceQuote" rows="5" placeholder="证据摘录 / 说明"></textarea>
+            <button id="addEvidenceBtn" class="primary-btn" type="button">添加证据</button>
+            <div class="compact-list" id="evidenceList"></div>
+          </article>
+
+          <article id="toolsPanel" class="panel wide">
+            <div class="panel-header">
+              <div><p class="eyebrow">Local tools</p><h2>本地工具调度</h2></div>
+              <button id="videoHealthBtn" class="secondary-btn" type="button">视频工具状态</button>
+            </div>
+            <div id="toolCards" class="tool-grid"></div>
+            <div class="video-plan-box">
+              <div class="form-grid">
+                <input id="videoMediaPath" placeholder="本地视频路径，例如 D:/videos/lecture.mp4" />
+                <input id="videoWorkspace" placeholder="输出 workspace，例如 D:/runs/lecture" />
+                <input id="videoTitle" placeholder="视频标题，可留空" />
+                <input id="videoMaxFrames" type="number" min="1" max="500" value="80" />
+              </div>
+              <div class="button-row">
+                <button id="videoPlanBtn" class="secondary-btn" type="button">视频处理计划</button>
+                <button id="videoArtifactCheckBtn" class="secondary-btn" type="button">检查 bundle artifacts</button>
+              </div>
+              <div class="command-row">
+                <input id="videoBundleDir" placeholder="review bundle 路径，默认可填 D:/runs/lecture/webui-bundle" />
+                <select id="videoImportClaimSelect"></select>
+                <button id="videoImportBtn" class="primary-btn" type="button">导入视频知识包</button>
+              </div>
+              <div id="videoBridgeSummary" class="bridge-summary">
+                <span class="pill">未计划</span>
+                <strong>video-knowledge-pipeline</strong>
+                <small>选择本地视频后生成 prepare-local-video-run 计划。</small>
+              </div>
+              <div id="videoBridgeResultRows" class="bridge-result-list"></div>
+            </div>
+            <div class="command-row">
+              <input id="videoArgs" value="asr-env-status" />
+              <button id="runVideoToolBtn" class="primary-btn" type="button">运行 video-knowledge</button>
+            </div>
+            <div class="command-row">
+              <select id="localToolId">
+                <option>video-knowledge-pipeline</option>
+                <option>ai-research-workflow</option>
+                <option>web-content-fetcher</option>
+                <option>video-download-orchestrator</option>
+              </select>
+              <input id="localToolAction" value="health" />
+              <input id="localToolArgs" value="{}" />
+              <button id="localToolDryRunBtn" class="secondary-btn" type="button">工具动作预览</button>
+            </div>
+            <div id="localToolActionRows" class="bridge-result-list"></div>
+            <section class="tool-bridge-status-box">
+              <div class="side-title-row">
+                <h3>研究缺口 / 循环研究</h3>
+                <button id="researchLoopListBtn" class="mini-btn" type="button">查看最近 loop</button>
+              </div>
+              <p class="boundary-note">先分析缺口；只有 backend 为完整研究且存在 actionable search gap 时，才显式 live 执行 research loop。Loop 产物始终是 candidate-only。</p>
+              <div class="command-row">
+                <input id="researchGapQuery" placeholder="可选：覆盖本项目研究问题" />
+                <input id="researchGapMaxQueries" type="number" min="1" max="8" value="3" />
+                <button id="researchGapAnalyzeBtn" class="mini-btn" type="button">分析缺口</button>
+              </div>
+              <div class="command-row">
+                <input id="researchLoopRounds" type="number" min="1" max="8" value="3" />
+                <input id="researchLoopMaxResults" type="number" min="1" max="20" value="8" />
+                <input id="researchLoopId" placeholder="loop id / 留空读取最新" />
+                <button id="researchLoopReadBtn" class="mini-btn" type="button">读取 loop</button>
+                <button id="researchLoopExportBtn" class="mini-btn" type="button">导出审核包</button>
+                <button id="researchLoopRunBtn" class="mini-btn danger-lite" type="button">显式 live loop</button>
+              </div>
+              <div id="researchLoopSummary" class="backend-mode-banner">
+                <span class="pill">未分析</span>
+                <strong>Research loop</strong>
+                <small>缺口分析和循环研究状态会显示在这里。</small>
+              </div>
+              <div id="researchLoopResultRows" class="bridge-result-list"></div>
+            </section>
+            <section class="tool-bridge-status-box">
+              <div class="side-title-row">
+                <h3>Bridge Action 执行闭环</h3>
+                <button id="enqueueBridgeActionsBtn" class="mini-btn" type="button">Bridge actions 入队</button>
+              </div>
+              <p class="boundary-note">默认 dry-run，只生成 planned run。Live 执行仅限 allowlisted bridge action，导入内容仍是 candidate。</p>
+              <div class="command-row">
+                <select id="bridgeActionName">
+                  <option>ai_research_search</option>
+                  <option>ai_research_import_json</option>
+                  <option>vane_perplexica_search</option>
+                  <option>vane_perplexica_import_json</option>
+                  <option>external_researcher_plan</option>
+                  <option>external_researcher_followup</option>
+                  <option>external_researcher_import_report</option>
+                  <option>external_researcher_export_bundle</option>
+                  <option>external_researcher_automation_plan</option>
+                  <option>web_fetch_source</option>
+                  <option>video_plan</option>
+                  <option>video_check_artifacts</option>
+                  <option>video_import_artifacts</option>
+                </select>
+                <input id="bridgeActionArgs" value="{}" />
+                <button id="bridgeActionPlanBtn" class="mini-btn" type="button">Bridge action 预览</button>
+                <button id="bridgeActionRunBtn" class="mini-btn danger-lite" type="button">显式 live 执行</button>
+              </div>
+              <div id="bridgeActionResultRows" class="bridge-result-list"></div>
+            </section>
+            <section class="tool-bridge-status-box">
+              <div class="side-title-row">
+                <h3>桥接状态</h3>
+                <button id="refreshToolBridgeStatusBtn" class="mini-btn" type="button">刷新状态</button>
+              </div>
+              <div id="backendModeBanner" class="backend-mode-banner">
+                <span class="pill">未检查</span>
+                <strong>当前运行模式</strong>
+                <small>刷新桥接状态后显示完整研究 / 本地候选 / 阻塞。</small>
+              </div>
+              <div class="command-row">
+                <input id="bridgeRunId" placeholder="bridge run id / path" />
+                <button id="readBridgeRunBtn" class="mini-btn" type="button">读取 run</button>
+                <button id="retryBridgeRunBtn" class="mini-btn" type="button">重试计划</button>
+              </div>
+              <div id="toolBridgeStatusRows" class="bridge-result-list"></div>
+            </section>
+            <section class="tool-bridge-status-box">
+              <div class="side-title-row">
+                <h3>同步安全</h3>
+                <button id="syncSafetyBtn" class="mini-btn" type="button">检查 Git 同步安全</button>
+              </div>
+              <p class="boundary-note">只读检查，不 stage、不 commit、不创建 remote；projects/ 和登录态默认不进 GitHub。</p>
+              <div id="syncSafetyRows" class="bridge-result-list"></div>
+            </section>
+          </article>
+
+          <article id="graphCandidatePanel" class="panel wide">
+            <div class="panel-header">
+              <div><p class="eyebrow">Knowledge graph</p><h2>图谱候选审核</h2></div>
+              <div class="button-row">
+                <button id="generateGraphCandidatesBtn" class="secondary-btn" type="button">生成候选边</button>
+                <button id="refreshGraphCandidatesBtn" class="secondary-btn" type="button">刷新</button>
+                <button id="exportReviewedGraphBtn" class="primary-btn" type="button">导出已接受图谱</button>
+              </div>
+            </div>
+            <div class="form-grid">
+              <select id="graphStatusFilter"><option value="">all</option><option>candidate</option><option>accepted</option><option>verified</option><option>rejected</option></select>
+              <input id="graphEdgeTypeFilter" placeholder="edge type，可留空" />
+            </div>
+            <div id="graphCandidateRows" class="review-queue-list"></div>
+          </article>
+
+          <article class="panel wide">
+            <div class="panel-header">
+              <div><p class="eyebrow">Draft</p><h2>阶段性输出</h2></div>
+              <div class="button-row">
+                <button id="overviewBtn" class="secondary-btn" type="button">总览</button>
+                <button id="draftBtn" class="primary-btn" type="button">草稿</button>
+                <button id="exportFinalAnswerBtn" class="primary-btn" type="button">导出最终答案</button>
+                <button id="exportResearchPackBtn" class="secondary-btn" type="button">导出研究包</button>
+                <button id="exportObsidianPackBtn" class="secondary-btn" type="button">导出到 Obsidian</button>
+                <button id="logseqHandoffBtn" class="secondary-btn" type="button">生成 Logseq 审核包</button>
+                <button id="agentRunbookBtn" class="secondary-btn" type="button">生成 Agent 下一步</button>
+                <button id="agentManifestBtn" class="secondary-btn" type="button">Agent Manifest</button>
+                <button id="cockpitReadinessBtn" class="secondary-btn" type="button">驾驶舱检查</button>
+                <button id="enqueueRunbookTasksBtn" class="secondary-btn" type="button">Runbook 入队</button>
+                <button id="refreshWorkQueueBtn" class="secondary-btn" type="button">刷新队列</button>
+              </div>
+            </div>
+            <div class="command-row">
+              <input id="obsidianVault" placeholder="Obsidian vault，例如 <obsidian-vault>" />
+              <input id="obsidianFolder" value="AI Research/问题导向研究审核包" />
+            </div>
+            <div id="workQueuePanel" class="bridge-result-list"></div>
+            <pre id="reportOutput" class="report-box"></pre>
+          </article>
+        </section>
+      </main>
+    </div>
+    <div id="notice" class="notice"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

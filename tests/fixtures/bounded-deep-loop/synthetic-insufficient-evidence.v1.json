@@ -1,0 +1,59 @@
+{
+  "schema": "question-research-bounded-deep-loop-fixture.v1",
+  "fixture_id": "synthetic-insufficient-evidence-001",
+  "question": "Does the fictional note establish that the proposed effect occurred?",
+  "audience": "offline contract reviewers",
+  "observed_at": "2026-08-27T00:00:00+08:00",
+  "budgets": {
+    "max_subquestions": 1,
+    "max_depth": 1,
+    "max_sources": 1,
+    "max_tokens": 200,
+    "max_expansions_per_round": 1,
+    "minimum_gap_score": 0.2
+  },
+  "subquestions": [
+    {
+      "subquestion_id": "sq-effect",
+      "text": "Was the proposed effect measured?",
+      "depth": 1,
+      "priority": "P0",
+      "gap_score": 0.95,
+      "token_cost": 40
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "src-hypothesis",
+      "title": "Synthetic unmeasured hypothesis note",
+      "canonical_ref": "fixture://synthetic-insufficient/hypothesis",
+      "source_type": "synthetic_note",
+      "quality": "good",
+      "review_status": "reviewed",
+      "freshness": "not_applicable",
+      "content": "Synthetic note no measurement was collected.",
+      "content_sha256": "fc3081f400a22a10ddf770214134e3b858ec69917ce67a222ae755426cd5dfdf",
+      "token_cost": 60
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "claim-effect",
+      "subquestion_id": "sq-effect",
+      "text": "The proposed effect occurred.",
+      "claim_origin": "agent_inference"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "ev-hypothesis-only",
+      "claim_id": "claim-effect",
+      "source_id": "src-hypothesis",
+      "evidence_type": "agent_inference",
+      "relation": "supports",
+      "status": "candidate",
+      "review_status": "candidate",
+      "text": "The note proposes an effect but records no measurement."
+    }
+  ]
+}

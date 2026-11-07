@@ -1,0 +1,10 @@
+{
+  "schema_version": "agent-tool-owner-recovery-fixture.v1",
+  "tool_id": "question-research-poc",
+  "scenarios": [
+    {"code": "missing_file", "action": "restore the named repository file and rerun the no-write doctor"},
+    {"code": "receipt_stale", "action": "rerun the local synthetic guarded fixture; do not promote the stale result"},
+    {"code": "artifact_hash_drift", "action": "discard the receipt and rebuild it from the exact synthetic artifact"},
+    {"code": "delegated_tool_unavailable", "action": "remain blocked or local-only; do not silently replace ARW or WCF"}
+  ]
+}

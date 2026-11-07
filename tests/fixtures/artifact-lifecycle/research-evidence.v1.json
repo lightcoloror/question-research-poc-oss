@@ -1,0 +1,18 @@
+{
+  "schema_version": "research-evidence-lifecycle-synthetic-fixture.v1",
+  "files": [
+    {"path": "evidence/evidence-bundle.json", "content": "synthetic verified evidence bundle"},
+    {"path": "evidence/source-refs.json", "content": "synthetic source references"},
+    {"path": "claims/claim-graph.json", "content": "synthetic claim graph"},
+    {"path": "review/factcheck-decision.json", "content": "synthetic fact check decision"},
+    {"path": "answers/guarded-answer.json", "content": "synthetic guarded answer"},
+    {"path": "content/content-brief.json", "content": "synthetic candidate content brief"},
+    {"path": "review/review-packet.json", "content": "synthetic review packet"},
+    {"path": "closure/checkpoint.json", "content": "synthetic closure checkpoint"},
+    {"path": "approvals/review-approval.json", "content": "synthetic approval"},
+    {"path": "receipts/closure-receipt.json", "content": "synthetic immutable receipt"},
+    {"path": "cache/failed-retrieval.tmp", "content": "synthetic failed retrieval cache"},
+    {"path": "analysis/superseded-analysis.json", "content": "synthetic rebuildable analysis"},
+    {"path": "unknown/unclassified.bin", "content": "synthetic unknown reference"}
+  ]
+}
