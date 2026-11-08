@@ -60,3 +60,23 @@ environment/permission failure must be reported rather than bypassed.
 This increment changes no runtime source, schema, or dependency and does not
 claim installed-wheel or real network/model acceptance. See
 [test provenance](TOPIC_TEST_PROVENANCE.json).
+
+## Owner manifest doctor (metadata only)
+
+`scripts/owner_manifest_doctor.py` validates the static
+[agent tool manifest](agent-tool-manifest.v1.json) and an optional
+caller-declared synthetic receipt without network access or writes:
+
+```sh
+python scripts/owner_manifest_doctor.py --tool-id question-research-poc
+```
+
+A green result means `ready_metadata_only`: the required public files are
+present and the manifest keeps `notTrustedAsInstruction` true and
+`executionAuthority` as `none_metadata_only`. It does not prove an installed
+wheel, an executed runtime, a running service, current online status, model
+use, clinical validity, operating-system readiness, publication rights or real
+research. A synthetic receipt is caller-declared and untrusted; it can only
+bind an artifact hash inside a time window and cannot grant permissions or
+publication. See [the doctor guide](docs/owner-manifest-doctor.md) and
+[manifest provenance](OWNER_MANIFEST_PROVENANCE.json).

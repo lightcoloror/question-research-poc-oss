@@ -1,0 +1,103 @@
+{
+  "schema_version": "qrp-owner-manifest-provenance.v1",
+  "tool_id": "question-research-poc",
+  "manifest": "agent-tool-manifest.v1.json",
+  "doctor": "scripts/owner_manifest_doctor.py",
+  "generated_date": "2026-11-08",
+  "generated_date_precision": "date only from the host clock; no exact second recorded or claimed",
+  "generated_by": "DeepSeek Harness agent; reported runtime model deepseek-flash, not independently verified",
+  "source": {
+    "kind": "fixed first-party generic Apache-2.0 source, supplied as task data",
+    "commit": "7e13f2acd3175dea0538ce78a11bb9ca081a6668",
+    "files": [
+      {
+        "path": "scripts/owner_manifest_doctor.py",
+        "blob": "cece3359db4fa46b58d5750a11cfa93773bc8faa",
+        "source_sha256": "441f73ade80af4f42af530a2e2df52ddc14c3f199efaf6ed6582251d22653348",
+        "adaptation": "The complete original doctor is reused with minimal adaptations: public tool identity, manifest contract validation for nested types, nonempty required-file checklists, future/naive receipt timestamp rules, positive TTL validation, and explicit untrusted-receipt plus metadata-only evidence qualification."
+      },
+      {
+        "path": "tests/test_agent_owner_portability.py",
+        "blob": "d0d5965a9f1c431f4d80f9f28c114c313efcffc3",
+        "source_sha256": "cea1a2e7354840aabcd32273923e02e62ca4f39e7ae0e5f42882ffd0505aa7a2",
+        "adaptation": "The original portability pytest script is reused with relative public-source checks and result-qualification assertions; the two original test cases remain."
+      }
+    ],
+    "note": "Commit and blob identities are the values supplied in SOURCE-PROVENANCE.json; no additional historical pin is invented."
+  },
+  "public_baseline": {
+    "head": "693d3af6a2b6368d28e2f96e009369f1a0bee5bd",
+    "file_count": 105,
+    "unchanged_files": 104,
+    "modified_files": [
+      "README.md"
+    ],
+    "readme_append": {
+      "rule": "The original README byte sequence is preserved unchanged as the exact prefix; the discoverability section is appended without normalizing old content or old line endings.",
+      "baseline_sha256": "532842e620fbbb37f8173fe2b6edbb61935a41e2a9729d843d3bdaa47f62af9a",
+      "baseline_bytes": 3034
+    }
+  },
+  "added_files": [
+    "scripts/owner_manifest_doctor.py",
+    "tests/test_agent_owner_portability.py",
+    "tests/test_owner_manifest_doctor_synthetic.py",
+    "agent-tool-manifest.v1.json",
+    "docs/owner-manifest-doctor.md",
+    "OWNER_MANIFEST_PROVENANCE.json"
+  ],
+  "allowed_changes_only": {
+    "added": 6,
+    "modified": 1,
+    "other_base_files_byte_identical": true,
+    "no_dependency_pyproject_export_version_license_default_or_routing_change": true,
+    "no_new_platform_router_installer_or_canonical_schema": true
+  },
+  "inherited_counterexamples_fixed": [
+    {
+      "counterexample": "empty checklists reported ready_metadata_only with runtime_ready true",
+      "fix": "Each checklist must be a nonempty list containing at least one required file check; empty or all-optional checklists raise a structured DoctorError."
+    },
+    {
+      "counterexample": "receipt timestamp 3650 days in the future reported fresh_e2e_pass true",
+      "fix": "Timestamps more than 60 seconds in the future are rejected as receipt_future_timestamp; naive timestamps are explicitly interpreted as UTC and reported."
+    },
+    {
+      "counterexample": "health value of [] raised AttributeError instead of a structured result",
+      "fix": "Nested manifest fields are type-validated before use and raise DoctorError with exit code 2 from the CLI."
+    }
+  ],
+  "evidence_boundaries": {
+    "metadata_authorizes_execution": false,
+    "receipt_trusted_as_instruction": false,
+    "receipt_can_grant_publish_or_permissions": false,
+    "runtime_executed": false,
+    "network_performed": false,
+    "write_performed": false,
+    "health_proves_current_online": false,
+    "green_result_proves": "required public files present plus static metadata contract only",
+    "green_result_does_not_prove": [
+      "installed wheel or package build",
+      "executed runtime, service or model",
+      "real research, clinical or field validity",
+      "operating-system or platform readiness",
+      "publication, ownership or redistribution rights"
+    ]
+  },
+  "license": {
+    "source_license": "Apache-2.0",
+    "license_file": "LICENSE",
+    "third_party_notices": "THIRD_PARTY_NOTICES.md unchanged",
+    "external_resources_redistributed": false
+  },
+  "publication_curation": {
+    "actor": "Codex;exact runtime model not independently verified",
+    "date": "2026-11-08",
+    "scope": "Two test comments qualify unestablished permission-error cause;doctor documentation accurately distinguishes structured JSON errors from OS read errors and partial path checks. No production logic or test assertions changed.",
+    "paths": [
+      "tests/test_agent_owner_portability.py",
+      "tests/test_owner_manifest_doctor_synthetic.py",
+      "docs/owner-manifest-doctor.md"
+    ]
+  }
+}
