@@ -41,3 +41,22 @@ See `docs/offline-evidence-brief-consumer-guide.md` and
 ## Saved capture increment 0.1.2
 
 See [saved capture interfaces](docs/saved-capture-interfaces.md). Saved excerpts and lexical passage scores remain candidate material, never verified facts or publication approval.
+
+
+## Synthetic topic-loop regression
+
+`tests/test_topic_driven_loop.py` adds eleven synthetic cases for grounded
+followups, capture and ledger hash drift, idempotent resume, blocked access,
+and avoiding duplicate requests when the previous outcome is unknown.
+With the existing test extra installed:
+
+```sh
+python -m pytest -q tests/test_topic_driven_loop.py
+```
+
+Local public-source validation passed 11/11 using host-only Windows temporary
+directory compatibility support. That support is not bundled, and an
+environment/permission failure must be reported rather than bypassed.
+This increment changes no runtime source, schema, or dependency and does not
+claim installed-wheel or real network/model acceptance. See
+[test provenance](TOPIC_TEST_PROVENANCE.json).

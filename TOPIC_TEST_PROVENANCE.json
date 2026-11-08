@@ -1,0 +1,59 @@
+{
+  "kind": "synthetic_topic_loop_source_regression",
+  "date_utc": "2026-11-08T05:16:40.646329+00:00",
+  "base_public_commit": "646b3871257b0861446615e7c96390f5dc714bde",
+  "source_path": "tests/test_topic_driven_loop.py",
+  "source_sha256": "11986dd4e1479144b6d631eaa0e16393961d3606d81b251ee2543d254a312894",
+  "source_kind": "current staged working source; not contained in the previously recorded private source commit",
+  "license": "Apache-2.0 first-party test source; external dependencies retain their own licenses",
+  "covered": [
+    "intake with no supplied evidence",
+    "grounded followup constraints",
+    "deduplication and hash-bound resume",
+    "ARW quality input projection",
+    "blocked access without fabricated candidates",
+    "unknown request outcome without resend"
+  ],
+  "local_result": {
+    "python": "3.13.5",
+    "pytest": "9.2.0",
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0,
+    "mode": "public-source synthetic regression"
+  },
+  "dependency_proof": {
+    "ARW_test_extra_pin": "9f1b2c03f2ee71fcb1bc7cbd4fe70e72db252161",
+    "quality_path_modules_equal_at_tested_public_HEAD": "9572e37b4d247bc0ace84e16a34ebeb3625645bd",
+    "module_blobs": [
+      {
+        "path": "src/research_workflow/quality.py",
+        "blob": "64194829b1a9b7515b86dd1d9a6912bc29233dc7"
+      },
+      {
+        "path": "src/research_workflow/models.py",
+        "blob": "eecc8226c13e15d2ec2907ddb85657925552c94f"
+      },
+      {
+        "path": "src/research_workflow/query_expansion.py",
+        "blob": "6e33dd39b147305e29e646234bb61174fa4659db"
+      },
+      {
+        "path": "src/research_workflow/research_integrity.py",
+        "blob": "7e2790c002b6416a9708cca594d00180166f8448"
+      }
+    ],
+    "not_a_full_dependency_suite": true
+  },
+  "first_attempt": "Host pytest temporary-directory permission failure; no pass claimed. Original diagnostics retained privately.",
+  "successful_attempt": "Existing host-only scoped Windows synthetic-temp compatibility adapter; new directories use ordinary inherited permissions. No existing ACL or security setting changed. Adapter not bundled.",
+  "limitations": [
+    "No installed-wheel acceptance in this increment",
+    "No real WCF/network/model/provider execution",
+    "No production research, clinical validity, human review or publishing authorization proved",
+    "No universal Windows or Linux runtime result claimed"
+  ],
+  "runtime_source_schema_dependency_changes": false,
+  "package_version": "0.1.2",
+  "new_tag_or_release": false
+}
