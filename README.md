@@ -90,3 +90,8 @@ The repository includes `scripts/write-mcp-config.ps1` to generate a standard `m
 The repository provides two portable Windows PowerShell 5.1 helper wrappers: `scripts/research-poc.ps1` (CLI forwarder) and `scripts/write-mcp-config.ps1` (generic `mcpServers` JSON generator; see [docs/mcp-config-helper.md](docs/mcp-config-helper.md)). It also includes `tests/test_qrp_wrappers_synthetic.ps1`, an isolated contract check driver running against fake standard-library modules under Windows PowerShell 5.1 Desktop.
 
 These are source-only records published under Apache-2.0. Prior native driver launch was halted by Windows `AuthorizationManager` before starting (0 cases executed). That refusal is retained without bypass or environment rebuilding, and no runtime execution pass is claimed. See [docs/powershell-helpers.md](docs/powershell-helpers.md) for usage, parameter specifications, and provenance hashes.
+
+
+### Research Evidence Lifecycle Adapter
+
+Optional source-only adapter scripts in `scripts/research-evidence-lifecycle.ps1` and synthetic test source in `tests/test_research_evidence_lifecycle_adapter.py` integrate with sibling `artifact-lifecycle-core` under Apache-2.0. The wrapper exposes planning/verification commands; it can write reports and checkpoints. Source/static checks are separate from runtime acceptance; this batch has a retained pytest permission block. See [docs/research-evidence-lifecycle.md](docs/research-evidence-lifecycle.md).
