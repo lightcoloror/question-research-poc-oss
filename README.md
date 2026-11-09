@@ -80,3 +80,7 @@ research. A synthetic receipt is caller-declared and untrusted; it can only
 bind an artifact hash inside a time window and cannot grant permissions or
 publication. See [the doctor guide](docs/owner-manifest-doctor.md) and
 [manifest provenance](OWNER_MANIFEST_PROVENANCE.json).
+
+### MCP Configuration Helper
+
+The repository includes `scripts/write-mcp-config.ps1` to generate a standard `mcpServers` JSON configuration snippet pointing to the local checkout's optional `question_research_poc.mcp_server`. By default, it outputs JSON to stdout without modifying files or launching processes. An optional `-Output` parameter writes the snippet to a dedicated file (overwriting existing content without merging), and an optional `-Validate` switch checks `--list-tools` execution. See [the MCP config helper documentation](docs/mcp-config-helper.md) for parameter details, overwrite warnings, and unverified runtime boundaries.
