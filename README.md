@@ -84,3 +84,9 @@ publication. See [the doctor guide](docs/owner-manifest-doctor.md) and
 ### MCP Configuration Helper
 
 The repository includes `scripts/write-mcp-config.ps1` to generate a standard `mcpServers` JSON configuration snippet pointing to the local checkout's optional `question_research_poc.mcp_server`. By default, it outputs JSON to stdout without modifying files or launching processes. An optional `-Output` parameter writes the snippet to a dedicated file (overwriting existing content without merging), and an optional `-Validate` switch checks `--list-tools` execution. See [the MCP config helper documentation](docs/mcp-config-helper.md) for parameter details, overwrite warnings, and unverified runtime boundaries.
+
+### PowerShell Helpers and Synthetic Contract Driver
+
+The repository provides two portable Windows PowerShell 5.1 helper wrappers: `scripts/research-poc.ps1` (CLI forwarder) and `scripts/write-mcp-config.ps1` (generic `mcpServers` JSON generator; see [docs/mcp-config-helper.md](docs/mcp-config-helper.md)). It also includes `tests/test_qrp_wrappers_synthetic.ps1`, an isolated contract check driver running against fake standard-library modules under Windows PowerShell 5.1 Desktop.
+
+These are source-only records published under Apache-2.0. Prior native driver launch was halted by Windows `AuthorizationManager` before starting (0 cases executed). That refusal is retained without bypass or environment rebuilding, and no runtime execution pass is claimed. See [docs/powershell-helpers.md](docs/powershell-helpers.md) for usage, parameter specifications, and provenance hashes.
