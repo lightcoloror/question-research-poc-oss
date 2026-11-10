@@ -95,3 +95,8 @@ These are source-only records published under Apache-2.0. Prior native driver la
 ### Research Evidence Lifecycle Adapter
 
 Optional source-only adapter scripts in `scripts/research-evidence-lifecycle.ps1` and synthetic test source in `tests/test_research_evidence_lifecycle_adapter.py` integrate with sibling `artifact-lifecycle-core` under Apache-2.0. The wrapper exposes planning/verification commands; it can write reports and checkpoints. Source/static checks are separate from runtime acceptance; this batch has a retained pytest permission block. See [docs/research-evidence-lifecycle.md](docs/research-evidence-lifecycle.md).
+
+
+## Release portability regression source
+
+See [the original four-test source, pinned schema checks and initial harness block](docs/release-portability-regressions-source.md). Source checks passed; the original tests did not run, and installed-wheel portability is unverified.
