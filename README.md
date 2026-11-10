@@ -95,3 +95,8 @@ These are source-only records published under Apache-2.0. Prior native driver la
 ### Research Evidence Lifecycle Adapter
 
 Optional source-only adapter scripts in `scripts/research-evidence-lifecycle.ps1` and synthetic test source in `tests/test_research_evidence_lifecycle_adapter.py` integrate with sibling `artifact-lifecycle-core` under Apache-2.0. The wrapper exposes planning/verification commands; it can write reports and checkpoints. Source/static checks are separate from runtime acceptance; this batch has a retained pytest permission block. See [docs/research-evidence-lifecycle.md](docs/research-evidence-lifecycle.md).
+
+
+## Expose existing WebUI smoke source with explicit project and reversible environment
+
+See [source, actual checks and remaining limits](docs/webui-smoke-source.md). No complete workflow or live-provider execution is claimed.
