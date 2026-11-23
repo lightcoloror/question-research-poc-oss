@@ -100,3 +100,19 @@ Optional source-only adapter scripts in `scripts/research-evidence-lifecycle.ps1
 ## Aggregate external-research operator launcher source
 
 See [the existing PowerShell launcher and its exact flag boundaries](docs/aggregate-research-launcher-source.md). Syntax is checked; CLI, browser, service and provider execution are unverified.
+
+## Preserve original capability closure regressions with explicit schema input
+
+See [source, actual checks and remaining limits](docs/capability-closure-regressions-source.md). No complete workflow or live-provider execution is claimed.
+
+## Original gateway bridge regression source
+
+See [the unchanged 19-function integration regression source and execution limits](docs/gateway-bridge-regressions-source.md). Syntax is checked; imports, collection, loopback HTTP and model/provider integration are unverified.
+
+## Release portability regression source
+
+See [the original four-test source, pinned schema checks and initial harness block](docs/release-portability-regressions-source.md). Source checks passed; the original tests did not run, and installed-wheel portability is unverified.
+
+## Expose existing WebUI smoke source with explicit project and reversible environment
+
+See [source, actual checks and remaining limits](docs/webui-smoke-source.md). No complete workflow or live-provider execution is claimed.
