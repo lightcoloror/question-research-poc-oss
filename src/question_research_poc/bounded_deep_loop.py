@@ -84,9 +84,10 @@ def run_bounded_deep_loop(
 
     if request_finalize:
         if len(receipts) != len(STAGES) or not manifest_path.is_file():
+            resume_from = STAGES[len(receipts)] if len(receipts) < len(STAGES) else "manifest"
             raise BoundedDeepLoopError(
                 "early_finalize_rejected",
-                f"research stages are incomplete; resume_from={STAGES[len(receipts)]}",
+                f"research stages or manifest are incomplete; resume_from={resume_from}",
             )
         manifest = _validate_manifest(manifest_path, run_id, input_sha256, receipts)
         return _result(run_dir, manifest, reused=True, finalized=False)

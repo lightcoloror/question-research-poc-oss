@@ -127,6 +127,10 @@ def test_crash_after_final_receipt_rebuilds_only_missing_manifest(tmp_path: Path
         for path in (run_dir / "receipts").glob("*.json")
     }
     assert not (run_dir / "bounded-deep-loop.v1.json").exists()
+    with pytest.raises(BoundedDeepLoopError) as early:
+        run_bounded_deep_loop(FIXTURE, tmp_path, closure_run_id="bounded-final-crash-001", request_finalize=True)
+    assert early.value.code == "early_finalize_rejected"
+    assert "resume_from=manifest" in str(early.value)
     resumed = run_bounded_deep_loop(
         FIXTURE,
         tmp_path,
